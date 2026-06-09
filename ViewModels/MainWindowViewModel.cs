@@ -10,9 +10,10 @@ namespace CrowdKeys.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
-    private static readonly string SettingsPath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "CrowdKeys", "settings.json");
+    private static readonly string DataDir = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "CrowdKeys");
+    private static readonly string GlobalConfigPath = Path.Combine(DataDir, "config.json");
+    private string ProfilePath => Path.Combine(DataDir, "profiles", $"{_userId}.json");
 
     private readonly TwitchAuthService _auth = new();
     private readonly TwitchEventSubService _eventSub = new();
@@ -22,14 +23,31 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private static readonly string ClientId = BuildInfo.ClientId;
 
-    [ObservableProperty] private bool _isConnected;
-    [ObservableProperty] private string _statusColor = "#3d3d4a";
-    [ObservableProperty] private string _connectButtonText = "Connecter";
+    [ObservableProperty] private bool   _isConnected;
+    [ObservableProperty] private bool   _isPaused;
+    [ObservableProperty] private bool   _hasCredentials;
+    [ObservableProperty] private string _statusColor        = "#3d3d4a";
+    [ObservableProperty] private string _connectButtonText  = "Se connecter";
+    [ObservableProperty] private string _loginName          = "";
+
+    public bool IsDisconnected  => !IsConnected && !IsPaused;
+    public string PauseButtonText => IsPaused ? "▶ Reprendre" : "⏸ Pause";
+
+    partial void OnIsConnectedChanged(bool value)
+    {
+        OnPropertyChanged(nameof(IsDisconnected));
+        OnPropertyChanged(nameof(PauseButtonText));
+    }
+    partial void OnIsPausedChanged(bool value)
+    {
+        OnPropertyChanged(nameof(IsDisconnected));
+        OnPropertyChanged(nameof(PauseButtonText));
+    }
 
     // Stored tokens - not bound to UI
-    private string _accessToken = "";
+    private string _accessToken  = "";
     private string _refreshToken = "";
-    private string _userId = "";
+    private string _userId       = "";
     private CancellationTokenSource? _retryCts;
 
     [ObservableProperty] private bool _isLoadingRewards;
@@ -62,9 +80,13 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty] private ObservableCollection<LogEntry> _log = [];
 
+    // ── Events ────────────────────────────────────────────────────────────────
+
+    public event EventHandler? LoggedOut;
+
     // ── Constructor ───────────────────────────────────────────────────────────
 
-    public MainWindowViewModel()
+    public MainWindowViewModel(string? accessToken = null, string? refreshToken = null)
     {
         _redemption = new RedemptionService(new CrossPlatformKeySimulator());
 
@@ -80,15 +102,55 @@ public partial class MainWindowViewModel : ViewModelBase
         _eventSub.Disconnected += (_, _) =>
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
+                if (IsPaused) return;
                 IsConnected = false;
                 StatusColor = "#3d3d4a";
-                ConnectButtonText = "Connecter";
                 ClearBindingOrphans();
                 _ = AutoRetryAsync();
             });
 
-        LoadSettings();
-        SyncBindings();
+        if (accessToken != null)
+        {
+            // Fresh login from LoginWindow
+            _accessToken   = accessToken;
+            _refreshToken  = refreshToken!;
+            HasCredentials = true;
+            SyncBindings();
+            _ = AutoConnectOnStartupAsync();
+        }
+        else
+        {
+            // Resuming saved session
+            LoadSettings();
+            SyncBindings();
+            if (HasCredentials)
+                _ = AutoConnectOnStartupAsync();
+        }
+    }
+
+    private async Task AutoConnectOnStartupAsync()
+    {
+        try
+        {
+            StatusColor = "#f0a500";
+            await ConnectWithTokenAsync();
+        }
+        catch (UnauthorizedAccessException)
+        {
+            _accessToken   = "";
+            _refreshToken  = "";
+            HasCredentials = false;
+            StatusColor    = "#3d3d4a";
+            AddToLog("Session expirée.", "#e53935");
+            Avalonia.Threading.Dispatcher.UIThread.Post(
+                () => LoggedOut?.Invoke(this, EventArgs.Empty));
+        }
+        catch (Exception ex)
+        {
+            StatusColor = "#3d3d4a";
+            AddToLog($"Connexion initiale échouée : {ex.Message}", "#e53935");
+            _ = AutoRetryAsync();
+        }
     }
 
     // ── Partial callbacks ─────────────────────────────────────────────────────
@@ -98,22 +160,8 @@ public partial class MainWindowViewModel : ViewModelBase
     // ── Commands ──────────────────────────────────────────────────────────────
 
     [RelayCommand]
-    private async Task ToggleConnect()
+    private async Task Connect()
     {
-        if (IsConnected)
-        {
-            _retryCts?.Cancel();
-            _retryCts = null;
-            await _eventSub.DisconnectAsync();
-            IsConnected = false;
-            StatusColor = "#3d3d4a";
-            ConnectButtonText = "Connecter";
-            AddToLog("Déconnecté.", "#adadb8");
-            ClearBindingOrphans();
-
-            return;
-        }
-
         _retryCts?.Cancel();
         _retryCts = null;
 
@@ -133,9 +181,8 @@ public partial class MainWindowViewModel : ViewModelBase
             {
                 _accessToken = "";
                 _refreshToken = "";
-                SaveSettings();
                 AddToLog("Session expirée - nouvelle authentification requise.", "#f0a500");
-            
+
                 await RunDeviceFlowAsync();
                 await ConnectWithTokenAsync();
             }
@@ -152,27 +199,87 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
+    [RelayCommand]
+    private async Task Disconnect()
+    {
+        SaveSettings();
+
+        _retryCts?.Cancel();
+        _retryCts = null;
+        await _eventSub.DisconnectAsync();
+
+        _accessToken  = "";
+        _refreshToken = "";
+        _userId       = "";
+        LoginName     = "";
+
+        IsPaused        = false;
+        HasCredentials  = false;
+        IsConnected     = false;
+        StatusColor     = "#3d3d4a";
+        ConnectButtonText = "Se connecter";
+
+        SaveGlobalConfig();
+        ClearBindingOrphans();
+        AddToLog("Déconnecté.", "#adadb8");
+        LoggedOut?.Invoke(this, EventArgs.Empty);
+    }
+
+    [RelayCommand]
+    private async Task TogglePause()
+    {
+        if (!IsPaused)
+        {
+            _retryCts?.Cancel();
+            _retryCts = null;
+            await _eventSub.DisconnectAsync();
+
+            IsPaused    = true;
+            IsConnected = false;
+            StatusColor = "#f0a500";
+            ClearBindingOrphans();
+            AddToLog("Listener en pause.", "#f0a500");
+            return;
+        }
+
+        // Resume
+        try
+        {
+            StatusColor = "#f0a500";
+            ConnectButtonText = "Connexion…";
+            await ConnectWithTokenAsync();
+        }
+        catch (Exception ex)
+        {
+            AddToLog($"Erreur lors de la reprise : {ex.Message}", "#e53935");
+        }
+    }
+
     private async Task ConnectWithTokenAsync(CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(_accessToken))
-        {
             throw new UnauthorizedAccessException("Aucun token - authentification requise.");
-        }
 
-        string userId;
+        string userId, login;
+    
         try
         {
-            userId = await _auth.GetUserIdAsync(ClientId, _accessToken, ct);
+            (userId, login) = await _auth.GetUserInfoAsync(ClientId, _accessToken, ct);
         }
         catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
         {
             (_accessToken, _refreshToken) = await _auth.RefreshTokenAsync(ClientId, _refreshToken, ct);
-            SaveSettings();
-
-            userId = await _auth.GetUserIdAsync(ClientId, _accessToken, ct);
+            (userId, login) = await _auth.GetUserInfoAsync(ClientId, _accessToken, ct);
         }
 
-        _userId = userId;
+        // Load profile if switching accounts
+        if (_userId != userId)
+        {
+            _userId = userId;
+            LoadProfile();
+        }
+
+        LoginName = login;
 
         try
         {
@@ -181,15 +288,17 @@ public partial class MainWindowViewModel : ViewModelBase
         catch (UnauthorizedAccessException)
         {
             (_accessToken, _refreshToken) = await _auth.RefreshTokenAsync(ClientId, _refreshToken, ct);
-            SaveSettings();
-
             await _eventSub.ConnectAsync(ClientId, _accessToken, userId, ct);
         }
 
-        IsConnected = true;
-        StatusColor = "#00c853";
-        ConnectButtonText = "Déconnecter";
+        IsPaused       = false;
+        IsConnected    = true;
+        HasCredentials = true;
+        StatusColor    = "#00c853";
+        ConnectButtonText = "Se connecter";
+
         SaveSettings();
+        SaveGlobalConfig();
 
         await RefreshRewardsInternalAsync(ct);
     }
@@ -254,11 +363,11 @@ public partial class MainWindowViewModel : ViewModelBase
                 _refreshToken = "";
 
                 SaveSettings();
-                AddToLog("Session expirée - cliquez sur Connecter pour vous reconnecter.", "#e53935");
+                AddToLog("Session expirée - cliquez sur Se connecter pour vous reconnecter.", "#e53935");
 
-                IsConnected = false;
-                StatusColor = "#3d3d4a";
-                ConnectButtonText = "Connecter";
+                HasCredentials = false;
+                IsConnected    = false;
+                StatusColor    = "#3d3d4a";
 
                 ClearBindingOrphans();
 
@@ -268,7 +377,6 @@ public partial class MainWindowViewModel : ViewModelBase
             {
                 IsConnected = false;
                 StatusColor = "#3d3d4a";
-                ConnectButtonText = "Connecter";
                 AddToLog($"Tentative {attempt} échouée : {ex.Message}", "#e53935");
             }
         }
@@ -281,18 +389,17 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private void ResetConnectionState()
     {
-        IsConnected = false;
-        StatusColor = "#3d3d4a";
-        ConnectButtonText = "Connecter";
+        IsConnected       = false;
+        IsPaused          = false;
+        StatusColor       = "#3d3d4a";
+        ConnectButtonText = "Se connecter";
     }
 
     [RelayCommand]
     private void AddBinding()
     {
         if (string.IsNullOrWhiteSpace(SelectedNewReward))
-        {
             return;
-        }
 
         var binding = new RedemptionBinding { RewardName = SelectedNewReward };
         CheckBindingOrphan(binding);
@@ -484,18 +591,62 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private void LoadSettings()
     {
-        if (!File.Exists(SettingsPath)) 
-            return;
-        
         try
         {
-            var s = JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(SettingsPath));
+            var config = LoadGlobalConfig();
+            if (string.IsNullOrEmpty(config.LastUserId)) 
+                return;
+
+            _userId = config.LastUserId;
+            LoadProfile();
+        }
+        catch { }
+    }
+
+    private void LoadProfile()
+    {
+        if (string.IsNullOrEmpty(_userId)) 
+            return;
+
+        if (!File.Exists(ProfilePath))     
+            return;
+
+        try
+        {
+            var s = JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(ProfilePath));
             if (s is null) 
                 return;
 
-            _accessToken = s.AccessToken;
+            _accessToken  = s.AccessToken;
             _refreshToken = s.RefreshToken;
-            Bindings = new ObservableCollection<RedemptionBinding>(s.Bindings);
+            LoginName     = s.LoginName;
+            Bindings      = new ObservableCollection<RedemptionBinding>(s.Bindings);
+            SyncBindings();
+            HasCredentials = !string.IsNullOrEmpty(_accessToken);
+        }
+        catch { }
+    }
+
+    private GlobalConfig LoadGlobalConfig()
+    {
+        try
+        {
+            if (File.Exists(GlobalConfigPath))
+                return JsonSerializer.Deserialize<GlobalConfig>(File.ReadAllText(GlobalConfigPath)) ?? new();
+        }
+        catch { }
+    
+        return new();
+    }
+
+    private void SaveGlobalConfig()
+    {
+        try
+        {
+            Directory.CreateDirectory(DataDir);
+            File.WriteAllText(GlobalConfigPath, JsonSerializer.Serialize(
+                new GlobalConfig { LastUserId = _userId },
+                new JsonSerializerOptions { WriteIndented = true }));
         }
         catch { }
     }
@@ -543,14 +694,23 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private void SaveSettings()
     {
-        Directory.CreateDirectory(Path.GetDirectoryName(SettingsPath)!);
-        File.WriteAllText(SettingsPath, JsonSerializer.Serialize(
-            new AppSettings
-            {
-                AccessToken = _accessToken,
-                RefreshToken = _refreshToken,
-                Bindings = [.. Bindings],
-            },
-            new JsonSerializerOptions { WriteIndented = true }));
+        if (string.IsNullOrEmpty(_userId)) 
+            return;
+
+        try
+        {
+            var profileDir = Path.GetDirectoryName(ProfilePath)!;
+            Directory.CreateDirectory(profileDir);
+            File.WriteAllText(ProfilePath, JsonSerializer.Serialize(
+                new AppSettings
+                {
+                    AccessToken  = _accessToken,
+                    RefreshToken = _refreshToken,
+                    LoginName    = LoginName,
+                    Bindings     = [.. Bindings],
+                },
+                new JsonSerializerOptions { WriteIndented = true }));
+        }
+        catch { }
     }
 }

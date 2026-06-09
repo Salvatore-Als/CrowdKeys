@@ -93,7 +93,7 @@
                     Command="{Binding AddBindingCommand}"
                     IsEnabled="{Binding SelectedNewReward, Converter={x:Static ObjectConverters.IsNotNull}}"
                     Padding="12,7" FontSize="13">
-                + Binding
+                Ajouter
             </Button>
         </Grid>
 
