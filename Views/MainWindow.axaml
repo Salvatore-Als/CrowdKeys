@@ -5,8 +5,8 @@
         x:Class="CrowdKeys.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="CrowdKeys"
-        Width="1060" Height="580"
-        MinWidth="860" MinHeight="440"
+        Width="1080" Height="640"
+        MinWidth="900" MinHeight="500"
         Background="#18181b"
         FontFamily="Segoe UI, SF Pro Display, Ubuntu, sans-serif">
 
@@ -128,7 +128,7 @@
         <Style Selector="ComboBoxItem">
             <Setter Property="Background" Value="#18181b"/>
             <Setter Property="Foreground" Value="#efeff1"/>
-            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontSize" Value="13"/>
         </Style>
         <Style Selector="ComboBoxItem:pointerover /template/ ContentPresenter">
             <Setter Property="Background" Value="#2d2d35"/>
@@ -190,7 +190,7 @@
             <Setter Property="CornerRadius" Value="4"/>
             <Setter Property="Padding" Value="10,5"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontSize" Value="12"/>
         </Style>
         <Style Selector="ToggleButton.configToggle:checked /template/ ContentPresenter">
             <Setter Property="Background" Value="#1f1a2e"/>
@@ -203,37 +203,13 @@
             <Setter Property="Background" Value="#222228"/>
         </Style>
 
-        <!-- Global active toggle -->
-        <Style Selector="ToggleButton.global">
-            <Setter Property="Background" Value="#3a1a1a"/>
-            <Setter Property="Foreground" Value="#e53935"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="CornerRadius" Value="4"/>
-            <Setter Property="Padding" Value="12,6"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-        </Style>
-        <Style Selector="ToggleButton.global:checked /template/ ContentPresenter">
-            <Setter Property="Background" Value="#1a3a2a"/>
-        </Style>
-        <Style Selector="ToggleButton.global:checked TextBlock">
-            <Setter Property="Foreground" Value="#00c853"/>
-        </Style>
-        <Style Selector="ToggleButton.global:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="#4a2020"/>
-        </Style>
-        <Style Selector="ToggleButton.global:checked:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="#1e4a30"/>
-        </Style>
-
         <!-- Per-binding toggle -->
         <Style Selector="ToggleButton.bindingToggle">
             <Setter Property="Background" Value="#2a1a1a"/>
             <Setter Property="BorderBrush" Value="#3a2a2a"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="4"/>
-            <Setter Property="Padding" Value="7,3"/>
+            <Setter Property="Padding" Value="8,4"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="FontSize" Value="11"/>
         </Style>
@@ -286,13 +262,30 @@
         <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
             <Setter Property="Background" Value="Transparent"/>
         </Style>
+
+        <!-- Binding card states -->
+        <Style Selector="ListBoxItem Border.bindingCard">
+            <Setter Property="Background" Value="#1a1a22"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="1.5"/>
+        </Style>
+        <Style Selector="ListBoxItem:pointerover Border.bindingCard">
+            <Setter Property="Background" Value="#22222e"/>
+        </Style>
+        <Style Selector="ListBoxItem:selected Border.bindingCard">
+            <Setter Property="Background" Value="#1e1630"/>
+            <Setter Property="BorderBrush" Value="#9147ff"/>
+        </Style>
+        <Style Selector="ListBoxItem:selected:pointerover Border.bindingCard">
+            <Setter Property="Background" Value="#261c3a"/>
+        </Style>
         <Style Selector="ScrollViewer">
             <Setter Property="HorizontalScrollBarVisibility" Value="Disabled"/>
         </Style>
 
     </Window.Styles>
 
-    <Grid RowDefinitions="44,*,Auto">
+    <Grid RowDefinitions="50,*,Auto">
 
         <!-- ── Row 0 : Title bar ── -->
         <Border Grid.Row="0" Background="#0e0e10">
@@ -308,23 +301,23 @@
 
             <!-- Title -->
             <TextBlock Grid.Column="2" Text="CrowdKeys"
-                       FontWeight="SemiBold" FontSize="14" VerticalAlignment="Center"/>
+                       FontWeight="SemiBold" FontSize="15" VerticalAlignment="Center"/>
 
             <!-- Connection chip -->
-            <Panel Grid.Column="2" Margin="140,0,0,0" VerticalAlignment="Center">
-                <Border CornerRadius="100" Padding="8,3" Background="#1a3a2a"
+            <Panel Grid.Column="2" Margin="148,0,0,0" VerticalAlignment="Center">
+                <Border CornerRadius="100" Padding="9,4" Background="#1a3a2a"
                         IsVisible="{Binding IsConnected}">
-                    <TextBlock Text="Connecté" FontSize="10" FontWeight="SemiBold" Foreground="#00c853"/>
+                    <TextBlock Text="Connecté" FontSize="11" FontWeight="SemiBold" Foreground="#00c853"/>
                 </Border>
-                <Border CornerRadius="100" Padding="8,3" Background="#28282e"
+                <Border CornerRadius="100" Padding="9,4" Background="#28282e"
                         IsVisible="{Binding !IsConnected}">
-                    <TextBlock Text="Déconnecté" FontSize="10" FontWeight="SemiBold" Foreground="#6b6b7a"/>
+                    <TextBlock Text="Déconnecté" FontSize="11" FontWeight="SemiBold" Foreground="#6b6b7a"/>
                 </Border>
             </Panel>
 
             <!-- Connect -->
             <Button Grid.Column="4" VerticalAlignment="Center"
-                    Command="{Binding ToggleConnectCommand}" Padding="14,7" FontSize="12">
+                    Command="{Binding ToggleConnectCommand}" Padding="16,8" FontSize="13">
                 <TextBlock Text="{Binding ConnectButtonText}"/>
             </Button>
 
