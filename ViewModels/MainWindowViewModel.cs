@@ -42,6 +42,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private ObservableCollection<RedemptionBinding> _bindings = [];
     [ObservableProperty] private RedemptionBinding? _selectedBinding;
     [ObservableProperty] private ObservableCollection<string> _availableRewards = [];
+    [ObservableProperty] private ObservableCollection<string> _filteredAvailableRewards = [];
     [ObservableProperty] private string? _selectedNewReward;
 
     // ── Available keys ────────────────────────────────────────────────────────
@@ -312,6 +313,7 @@ public partial class MainWindowViewModel : ViewModelBase
         SelectedBinding = binding;
         SelectedNewReward = null;
         SyncBindings();
+        UpdateFilteredRewards();
         SaveSettings();
     }
 
@@ -335,7 +337,9 @@ public partial class MainWindowViewModel : ViewModelBase
             {
                 AvailableRewards.Add(r);
             }
+        
             UpdateBindingOrphans();
+            UpdateFilteredRewards();
             AddToLog($"{AvailableRewards.Count} reward(s) chargé(s).", "#adadb8");
         }
         catch (Exception ex)
@@ -370,6 +374,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private void ClearBindingOrphans()
     {
         AvailableRewards.Clear();
+        FilteredAvailableRewards.Clear();
 
         foreach (var binding in Bindings)
         {
@@ -377,17 +382,33 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
+    private void UpdateFilteredRewards()
+    {
+        var used = Bindings
+            .Select(b => b.RewardName)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        FilteredAvailableRewards.Clear();
+
+        foreach (var r in AvailableRewards)
+        {
+            if (!used.Contains(r))
+                FilteredAvailableRewards.Add(r);
+        }
+    }
+
     [RelayCommand]
     private void DeleteBinding(RedemptionBinding? b)
     {
-        if (b is null) 
+        if (b is null)
             return;
-        
-        if (SelectedBinding == b) 
+
+        if (SelectedBinding == b)
             SelectedBinding = null;
-        
+
         Bindings.Remove(b);
         SyncBindings();
+        UpdateFilteredRewards();
         SaveSettings();
     }
 
@@ -518,6 +539,7 @@ public partial class MainWindowViewModel : ViewModelBase
             if (e.PropertyName == nameof(RedemptionBinding.RewardName))
             {
                 CheckBindingOrphan(binding);
+                UpdateFilteredRewards();
             }
         };
         foreach (var step in binding.Steps)

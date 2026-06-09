@@ -425,7 +425,7 @@
 
                 <Grid Grid.Row="3" ColumnDefinitions="*,8,Auto" Margin="10,10,10,12">
                     <ComboBox Grid.Column="0"
-                              ItemsSource="{Binding AvailableRewards}"
+                              ItemsSource="{Binding FilteredAvailableRewards}"
                               SelectedItem="{Binding SelectedNewReward}"
                               PlaceholderText="Sélectionnez un reward…"
                               FontSize="12"
