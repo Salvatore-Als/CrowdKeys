@@ -1,0 +1,214 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:CrowdKeys.ViewModels"
+             x:Class="CrowdKeys.Views.StepEditorPanel"
+             x:DataType="vm:MainWindowViewModel">
+
+    <Grid RowDefinitions="Auto,Auto,*,1,Auto">
+
+        <!-- Header -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="16,10,16,4">
+            <TextBlock Grid.Column="0" Text="SÉQUENCE DE TOUCHES"
+                       FontSize="11" Foreground="#6b6b7a" FontWeight="SemiBold" LetterSpacing="1"
+                       VerticalAlignment="Center"/>
+            <TextBlock Grid.Column="1"
+                       Text="{Binding SelectedBinding.RewardName}"
+                       FontSize="11" Foreground="#9147ff"
+                       FontFamily="Cascadia Code, Consolas, monospace"
+                       VerticalAlignment="Center"
+                       IsVisible="{Binding SelectedBinding, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+        </Grid>
+
+        <!-- Description -->
+        <Border Grid.Row="1" Padding="14,0,14,8"
+                IsVisible="{Binding SelectedBinding, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <TextBox Text="{Binding SelectedBinding.Description}"
+                     PlaceholderText="Description du binding (optionnel)…"
+                     FontSize="12"/>
+        </Border>
+
+        <!-- Empty state -->
+        <StackPanel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8"
+                    IsVisible="{Binding SelectedBinding, Converter={x:Static ObjectConverters.IsNull}}">
+            <TextBlock Text="↑" FontSize="28" Foreground="#3d3d4a" HorizontalAlignment="Center"/>
+            <TextBlock Text="Sélectionnez un binding" FontSize="12" Foreground="#3d3d4a"/>
+        </StackPanel>
+
+        <!-- Step cards -->
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto"
+                      IsVisible="{Binding SelectedBinding, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <ItemsControl ItemsSource="{Binding SelectedBinding.Steps}" Margin="0,4,0,4">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Margin="14,4" Padding="12,10"
+                                Background="#1e1e26"
+                                BorderBrush="#2d2d35" BorderThickness="1"
+                                CornerRadius="8"
+                                DragDrop.AllowDrop="True"
+                                DragDrop.DragOver="StepBorder_DragOver"
+                                DragDrop.Drop="StepBorder_Drop">
+                            <Grid ColumnDefinitions="22,*">
+                                <Border Grid.Column="0" Background="Transparent"
+                                        Cursor="SizeAll" VerticalAlignment="Stretch"
+                                        PointerPressed="DragHandle_PointerPressed">
+                                    <TextBlock Text="⠿" FontSize="13" Foreground="#3d3d4a"
+                                               VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                </Border>
+                                <StackPanel Grid.Column="1" Spacing="10" Margin="6,0,0,0">
+
+                                <!-- Card header -->
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="0" VerticalAlignment="Center">
+                                        <TextBlock IsVisible="{Binding IsKeyStep}"         Text="TOUCHE"      FontSize="10" FontWeight="SemiBold" Foreground="#adadb8"/>
+                                        <TextBlock IsVisible="{Binding IsPauseStep}"       Text="PAUSE"       FontSize="10" FontWeight="SemiBold" Foreground="#adadb8"/>
+                                        <TextBlock IsVisible="{Binding IsMouseClickStep}"  Text="CLIC SOURIS" FontSize="10" FontWeight="SemiBold" Foreground="#adadb8"/>
+                                        <TextBlock IsVisible="{Binding IsMouseScrollStep}" Text="MOLETTE"     FontSize="10" FontWeight="SemiBold" Foreground="#adadb8"/>
+                                        <TextBlock IsVisible="{Binding IsMouseMoveStep}"   Text="DÉPLACEMENT" FontSize="10" FontWeight="SemiBold" Foreground="#adadb8"/>
+                                    </StackPanel>
+                                    <Button Grid.Column="1" Classes="danger"
+                                            VerticalAlignment="Center"
+                                            Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).DeleteStepCommand}"
+                                            CommandParameter="{Binding}">
+                                        <TextBlock Text="✕" FontSize="11"/>
+                                    </Button>
+                                </Grid>
+
+                                <!-- KEY step body -->
+                                <StackPanel IsVisible="{Binding IsKeyStep}" Spacing="8">
+                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <ToggleButton Classes="modifier" IsChecked="{Binding UseCtrl}"  Content="CTRL"/>
+                                        <ToggleButton Classes="modifier" IsChecked="{Binding UseShift}" Content="SHIFT"/>
+                                        <ToggleButton Classes="modifier" IsChecked="{Binding UseAlt}"   Content="ALT"/>
+                                        <ToggleButton Classes="modifier" IsChecked="{Binding UseWin}"   Content="WIN"/>
+                                        <ComboBox SelectedItem="{Binding MainKey}"
+                                                  ItemsSource="{x:Static vm:MainWindowViewModel.AvailableKeys}"
+                                                  PlaceholderText="Touche…" MinWidth="90" FontSize="13"/>
+                                    </StackPanel>
+                                    <Grid ColumnDefinitions="*,12,*">
+                                        <StackPanel Grid.Column="0" Spacing="5">
+                                            <TextBlock Text="ITÉRATIONS" FontSize="9" Foreground="#6b6b7a" FontWeight="SemiBold"/>
+                                            <NumericUpDown Value="{Binding RepeatCount}" Minimum="1" Maximum="99"
+                                                           FormatString="0" Increment="1" ParsingNumberStyle="Integer"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2" Spacing="5"
+                                                    IsVisible="{Binding CanConfigureDelay}">
+                                            <TextBlock Text="DÉLAI ENTRE (MS) • 0 = INSTANTANÉ" FontSize="9" Foreground="#6b6b7a" FontWeight="SemiBold"/>
+                                            <NumericUpDown Value="{Binding DelayBetweenMs}" Minimum="0" Maximum="5000"
+                                                           FormatString="0" Increment="50" ParsingNumberStyle="Integer"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+
+                                <!-- PAUSE step body -->
+                                <StackPanel IsVisible="{Binding IsPauseStep}" Spacing="5">
+                                    <TextBlock Text="DURÉE (MS)" FontSize="9" Foreground="#6b6b7a" FontWeight="SemiBold"/>
+                                    <NumericUpDown Value="{Binding DurationMs}" Minimum="0" Maximum="60000"
+                                                   FormatString="0" Increment="100" ParsingNumberStyle="Integer"/>
+                                </StackPanel>
+
+                                <!-- MOUSE CLICK step body -->
+                                <StackPanel IsVisible="{Binding IsMouseClickStep}" Spacing="8">
+                                    <TextBlock Text="BOUTON" FontSize="9" Foreground="#6b6b7a" FontWeight="SemiBold"/>
+                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <ToggleButton Classes="modifier" IsChecked="{Binding IsLeftClick}"   Content="GAUCHE"/>
+                                        <ToggleButton Classes="modifier" IsChecked="{Binding IsRightClick}"  Content="DROIT"/>
+                                        <ToggleButton Classes="modifier" IsChecked="{Binding IsMiddleClick}" Content="MILIEU"/>
+                                    </StackPanel>
+                                    <Grid ColumnDefinitions="*,12,*">
+                                        <StackPanel Grid.Column="0" Spacing="5">
+                                            <TextBlock Text="ITÉRATIONS" FontSize="9" Foreground="#6b6b7a" FontWeight="SemiBold"/>
+                                            <NumericUpDown Value="{Binding RepeatCount}" Minimum="1" Maximum="99"
+                                                           FormatString="0" Increment="1" ParsingNumberStyle="Integer"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2" Spacing="5"
+                                                    IsVisible="{Binding CanConfigureDelay}">
+                                            <TextBlock Text="DÉLAI ENTRE (MS) • 0 = INSTANTANÉ" FontSize="9" Foreground="#6b6b7a" FontWeight="SemiBold"/>
+                                            <NumericUpDown Value="{Binding DelayBetweenMs}" Minimum="0" Maximum="5000"
+                                                           FormatString="0" Increment="50" ParsingNumberStyle="Integer"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+
+                                <!-- MOUSE SCROLL step body -->
+                                <StackPanel IsVisible="{Binding IsMouseScrollStep}" Spacing="8">
+                                    <TextBlock Text="DIRECTION" FontSize="9" Foreground="#6b6b7a" FontWeight="SemiBold"/>
+                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <ToggleButton Classes="modifier" IsChecked="{Binding IsScrollUp}"   Content="⬆ HAUT"/>
+                                        <ToggleButton Classes="modifier" IsChecked="{Binding IsScrollDown}" Content="⬇ BAS"/>
+                                    </StackPanel>
+                                    <StackPanel Spacing="5">
+                                        <TextBlock Text="QUANTITÉ" FontSize="9" Foreground="#6b6b7a" FontWeight="SemiBold"/>
+                                        <NumericUpDown Value="{Binding ScrollAmount}" Minimum="1" Maximum="100"
+                                                       FormatString="0" Increment="1" ParsingNumberStyle="Integer"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- MOUSE MOVE step body -->
+                                <StackPanel IsVisible="{Binding IsMouseMoveStep}" Spacing="8">
+                                    <Grid ColumnDefinitions="*,12,*">
+                                        <StackPanel Grid.Column="0" Spacing="5">
+                                            <TextBlock Text="X (PX)" FontSize="9" Foreground="#6b6b7a" FontWeight="SemiBold"/>
+                                            <NumericUpDown Value="{Binding MoveX}" Minimum="-5000" Maximum="5000"
+                                                           FormatString="0" Increment="10" ParsingNumberStyle="Integer"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2" Spacing="5">
+                                            <TextBlock Text="Y (PX)" FontSize="9" Foreground="#6b6b7a" FontWeight="SemiBold"/>
+                                            <NumericUpDown Value="{Binding MoveY}" Minimum="-5000" Maximum="5000"
+                                                           FormatString="0" Increment="10" ParsingNumberStyle="Integer"/>
+                                        </StackPanel>
+                                    </Grid>
+                                    <StackPanel Spacing="5">
+                                        <TextBlock Text="VITESSE (MS) • 0 = INSTANTANÉ" FontSize="9" Foreground="#6b6b7a" FontWeight="SemiBold"/>
+                                        <NumericUpDown Value="{Binding MoveSpeedMs}" Minimum="0" Maximum="10000"
+                                                       FormatString="0" Increment="50" ParsingNumberStyle="Integer"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <Border Grid.Row="3" Background="#2d2d35" Margin="14,0"/>
+
+        <!-- Add step buttons -->
+        <StackPanel Grid.Row="4" Orientation="Horizontal" Spacing="8"
+                    HorizontalAlignment="Center" Margin="14,10,14,12"
+                    IsVisible="{Binding SelectedBinding, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <Button Classes="ghost" Command="{Binding AddKeyStepCommand}" Padding="14,7" FontSize="12" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+                <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock Text="⌨" FontSize="12" VerticalAlignment="Center"/>
+                    <TextBlock Text="Touche" FontSize="12" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Button>
+            <Button Classes="ghost" Command="{Binding AddPauseStepCommand}" Padding="14,7" FontSize="12" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+                <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock Text="⏱" FontSize="12" VerticalAlignment="Center"/>
+                    <TextBlock Text="Pause" FontSize="12" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Button>
+            <Button Classes="ghost" Command="{Binding AddMouseClickStepCommand}" Padding="14,7" FontSize="12" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+                <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock Text="🖱" FontSize="12" VerticalAlignment="Center"/>
+                    <TextBlock Text="Clic" FontSize="12" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Button>
+            <Button Classes="ghost" Command="{Binding AddMouseScrollStepCommand}" Padding="14,7" FontSize="12" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+                <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock Text="⊙" FontSize="12" VerticalAlignment="Center"/>
+                    <TextBlock Text="Molette" FontSize="12" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Button>
+            <Button Classes="ghost" Command="{Binding AddMouseMoveStepCommand}" Padding="14,7" FontSize="12" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+                <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock Text="↗" FontSize="12" VerticalAlignment="Center"/>
+                    <TextBlock Text="Déplacer" FontSize="12" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Button>
+        </StackPanel>
+
+    </Grid>
+</UserControl>

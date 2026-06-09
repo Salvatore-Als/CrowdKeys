@@ -1,0 +1,106 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:CrowdKeys.ViewModels"
+             xmlns:models="using:CrowdKeys.Models"
+             x:Class="CrowdKeys.Views.BindingsPanel"
+             x:DataType="vm:MainWindowViewModel">
+
+    <Grid RowDefinitions="Auto,*,1,Auto">
+
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="16,10,16,4">
+            <TextBlock Grid.Column="0" Text="BINDINGS" FontSize="11"
+                       Foreground="#6b6b7a" FontWeight="SemiBold" LetterSpacing="1"
+                       VerticalAlignment="Center"/>
+            <Button Grid.Column="1" Classes="ghost"
+                    Command="{Binding RefreshRewardsCommand}"
+                    IsEnabled="{Binding IsConnected}"
+                    Padding="6,2" VerticalAlignment="Center"
+                    ToolTip.Tip="Actualiser la liste des rewards">
+                <Panel>
+                    <TextBlock Text="↻" FontSize="14" IsVisible="{Binding !IsLoadingRewards}"/>
+                    <TextBlock Text="…" FontSize="14" IsVisible="{Binding IsLoadingRewards}"/>
+                </Panel>
+            </Button>
+        </Grid>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <ListBox ItemsSource="{Binding Bindings}" SelectedItem="{Binding SelectedBinding}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate x:DataType="models:RedemptionBinding">
+                        <Border Margin="10,3,10,3" Padding="12,10"
+                                CornerRadius="6" Cursor="Hand">
+                            <Border.Styles>
+                                <Style Selector="Border">
+                                    <Setter Property="Background" Value="#1a1a22"/>
+                                </Style>
+                                <Style Selector="Border:pointerover">
+                                    <Setter Property="Background" Value="#22222e"/>
+                                </Style>
+                            </Border.Styles>
+                            <Grid ColumnDefinitions="*,Auto,28">
+
+                                <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="3">
+                                    <TextBlock Text="{Binding RewardName}"
+                                               FontSize="13" FontWeight="SemiBold"
+                                               FontFamily="Cascadia Code, Consolas, monospace"
+                                               TextTrimming="CharacterEllipsis"/>
+                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <TextBlock Text="{Binding Steps.Count}"
+                                                   FontSize="10" Foreground="#6b6b7a"/>
+                                        <TextBlock Text="étape(s)"
+                                                   FontSize="10" Foreground="#3d3d4a"/>
+                                    </StackPanel>
+                                    <TextBlock Text="Reward inexistant sur Twitch"
+                                               FontSize="10" Foreground="#f0a500"
+                                               FontStyle="Italic"
+                                               IsVisible="{Binding IsOrphaned}"/>
+                                    <TextBlock Text="{Binding Description}"
+                                               FontSize="11" Foreground="#7a7a8a"
+                                               TextTrimming="CharacterEllipsis"
+                                               IsVisible="{Binding HasDescription}"/>
+                                </StackPanel>
+
+                                <ToggleButton Grid.Column="1" Classes="bindingToggle"
+                                             IsChecked="{Binding IsEnabled}"
+                                             VerticalAlignment="Center" Margin="0,0,6,0">
+                                    <Panel>
+                                        <TextBlock Text="ACTIF" FontSize="10" FontWeight="SemiBold"
+                                                   Foreground="#00c853" IsVisible="{Binding IsEnabled}"/>
+                                        <TextBlock Text="INACTIF" FontSize="10" FontWeight="SemiBold"
+                                                   Foreground="#e53935" IsVisible="{Binding !IsEnabled}"/>
+                                    </Panel>
+                                </ToggleButton>
+
+                                <Button Grid.Column="2" Classes="danger"
+                                        VerticalAlignment="Center" HorizontalAlignment="Center"
+                                        Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).DeleteBindingCommand}"
+                                        CommandParameter="{Binding}">
+                                    <TextBlock Text="✕" FontSize="11"/>
+                                </Button>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </ScrollViewer>
+
+        <Border Grid.Row="2" Background="#2d2d35" Margin="10,0"/>
+
+        <Grid Grid.Row="3" ColumnDefinitions="*,8,Auto" Margin="10,10,10,12">
+            <ComboBox Grid.Column="0"
+                      ItemsSource="{Binding FilteredAvailableRewards}"
+                      SelectedItem="{Binding SelectedNewReward}"
+                      PlaceholderText="Sélectionnez un reward…"
+                      FontSize="12"
+                      IsEnabled="{Binding IsConnected}"
+                      HorizontalAlignment="Stretch"/>
+            <Button Grid.Column="2"
+                    Command="{Binding AddBindingCommand}"
+                    IsEnabled="{Binding SelectedNewReward, Converter={x:Static ObjectConverters.IsNotNull}}"
+                    Padding="10,6" FontSize="12">
+                + Binding
+            </Button>
+        </Grid>
+
+    </Grid>
+</UserControl>

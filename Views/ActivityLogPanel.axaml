@@ -1,0 +1,46 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:CrowdKeys.ViewModels"
+             xmlns:services="using:CrowdKeys.Services"
+             x:Class="CrowdKeys.Views.ActivityLogPanel"
+             x:DataType="vm:MainWindowViewModel">
+
+    <Grid RowDefinitions="Auto,*,1,Auto">
+
+        <TextBlock Grid.Row="0" Text="ACTIVITÉ" FontSize="11"
+                   Foreground="#6b6b7a" FontWeight="SemiBold" LetterSpacing="1"
+                   Margin="14,10,14,4"/>
+
+        <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8"
+                    IsVisible="{Binding Log.Count, Converter={x:Static ObjectConverters.IsNull}, FallbackValue=False}">
+            <TextBlock Text="〜" FontSize="24" Foreground="#3d3d4a" HorizontalAlignment="Center"/>
+            <TextBlock Text="Aucune activité récente." FontSize="11" Foreground="#3d3d4a"/>
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding Log}" Margin="14,0">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="services:LogEntry">
+                        <StackPanel Margin="0,5" Spacing="2">
+                            <TextBlock Text="{Binding Message}"
+                                       Foreground="{Binding ForegroundColor}"
+                                       FontSize="11" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding Timestamp, StringFormat='{}{0:HH:mm:ss}'}"
+                                       FontSize="11" Foreground="#6b6b7a"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <Border Grid.Row="2" Background="#2d2d35" Margin="14,0"/>
+
+        <Button Grid.Row="3" Classes="ghost"
+                Command="{Binding ClearLogCommand}"
+                Margin="14,8" HorizontalAlignment="Stretch"
+                HorizontalContentAlignment="Center" FontSize="12">
+            Effacer
+        </Button>
+
+    </Grid>
+</UserControl>
