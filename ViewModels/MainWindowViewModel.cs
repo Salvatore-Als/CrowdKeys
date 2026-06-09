@@ -31,7 +31,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private string _loginName          = "";
 
     public bool IsDisconnected  => !IsConnected && !IsPaused;
-    public string PauseButtonText => IsPaused ? "▶ Reprendre" : "⏸ Pause";
+    public string PauseButtonText => IsPaused ? "Reprendre" : "Pause";
 
     partial void OnIsConnectedChanged(bool value)
     {
