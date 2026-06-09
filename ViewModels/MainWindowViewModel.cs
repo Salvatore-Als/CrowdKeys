@@ -219,7 +219,7 @@ public partial class MainWindowViewModel : ViewModelBase
         StatusColor     = "#3d3d4a";
         ConnectButtonText = "Se connecter";
 
-        SaveGlobalConfig();
+        DeleteGlobalConfig();
         ClearBindingOrphans();
         AddToLog("Déconnecté.", "#adadb8");
         LoggedOut?.Invoke(this, EventArgs.Empty);
@@ -649,6 +649,11 @@ public partial class MainWindowViewModel : ViewModelBase
                 new JsonSerializerOptions { WriteIndented = true }));
         }
         catch { }
+    }
+
+    private void DeleteGlobalConfig()
+    {
+        try { File.Delete(GlobalConfigPath); } catch { }
     }
 
     // ── Auto-save ─────────────────────────────────────────────────────────────
