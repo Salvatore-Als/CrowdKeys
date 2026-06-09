@@ -1,6 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace TwitchKeyboard.ViewModels;
+namespace CrowdKeys.ViewModels;
 
 public abstract class ViewModelBase : ObservableObject
 {

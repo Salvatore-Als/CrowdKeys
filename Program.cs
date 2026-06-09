@@ -1,7 +1,7 @@
 ﻿using Avalonia;
 using System;
 
-namespace TwitchKeyboard;
+namespace CrowdKeys;
 
 sealed class Program
 {

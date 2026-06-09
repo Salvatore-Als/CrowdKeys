@@ -1,6 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace TwitchKeyboard.Models;
+namespace CrowdKeys.Models;
 
 public enum StepType { Key, Pause, MouseClick, MouseScroll, MouseMove }
 public enum MouseButton { Left, Right, Middle }

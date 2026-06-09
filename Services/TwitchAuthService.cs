@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 
-namespace TwitchKeyboard.Services;
+namespace CrowdKeys.Services;
 
 public class TwitchAuthService : IDisposable
 {

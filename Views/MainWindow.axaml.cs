@@ -2,10 +2,10 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
-using TwitchKeyboard.Models;
-using TwitchKeyboard.ViewModels;
+using CrowdKeys.Models;
+using CrowdKeys.ViewModels;
 
-namespace TwitchKeyboard.Views;
+namespace CrowdKeys.Views;
 
 public partial class MainWindow : Window
 {

@@ -1,6 +1,6 @@
-using TwitchKeyboard.Models;
+using CrowdKeys.Models;
 
-namespace TwitchKeyboard.Services;
+namespace CrowdKeys.Services;
 
 public class LogEntry
 {

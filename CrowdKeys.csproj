@@ -33,7 +33,7 @@
 
   <Target Name="GenerateBuildInfo" BeforeTargets="CoreCompile">
     <ItemGroup>
-      <_BuildInfoLines Include="namespace TwitchKeyboard%3B" />
+      <_BuildInfoLines Include="namespace CrowdKeys%3B" />
       <_BuildInfoLines Include="public static class BuildInfo" />
       <_BuildInfoLines Include="{" />
       <_BuildInfoLines Include="    public const string Version = &quot;$(AppVersion)&quot;%3B" />

@@ -1,4 +1,4 @@
-# TwitchKeyboard
+# CrowdKeys
 
 Associe des récompenses de points de chaîne Twitch à des actions clavier/souris sur votre PC. Quand un viewer rachète une récompense, l'application exécute automatiquement la séquence d'actions configurée.
 
@@ -19,7 +19,7 @@ Associe des récompenses de points de chaîne Twitch à des actions clavier/sour
 | **Scroll souris** | Scroll haut ou bas d'un nombre de crans |
 | **Déplacement souris** | Déplacement relatif en pixels, avec vitesse optionnelle |
 
-Les paramètres sont sauvegardés automatiquement dans `%APPDATA%\TwitchKeyboard\settings.json`.
+Les paramètres sont sauvegardés automatiquement dans `%APPDATA%\CrowdKeys\settings.json`.
 
 ---
 

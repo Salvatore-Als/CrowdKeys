@@ -1,4 +1,4 @@
-namespace TwitchKeyboard.Models;
+namespace CrowdKeys.Models;
 
 public class AppSettings
 {

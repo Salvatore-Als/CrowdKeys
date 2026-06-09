@@ -1,10 +1,10 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using TwitchKeyboard.ViewModels;
-using TwitchKeyboard.Views;
+using CrowdKeys.ViewModels;
+using CrowdKeys.Views;
 
-namespace TwitchKeyboard;
+namespace CrowdKeys;
 
 public partial class App : Application
 {

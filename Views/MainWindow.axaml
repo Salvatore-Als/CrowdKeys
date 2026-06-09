@@ -1,11 +1,11 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:TwitchKeyboard.ViewModels"
-        xmlns:models="using:TwitchKeyboard.Models"
-        xmlns:services="using:TwitchKeyboard.Services"
-        x:Class="TwitchKeyboard.Views.MainWindow"
+        xmlns:vm="using:CrowdKeys.ViewModels"
+        xmlns:models="using:CrowdKeys.Models"
+        xmlns:services="using:CrowdKeys.Services"
+        x:Class="CrowdKeys.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
-        Title="TwitchKeyboard"
+        Title="CrowdKeys"
         Width="1060" Height="580"
         MinWidth="860" MinHeight="440"
         Background="#18181b"
@@ -308,7 +308,7 @@
             </Ellipse>
 
             <!-- Title -->
-            <TextBlock Grid.Column="2" Text="TwitchKeyboard"
+            <TextBlock Grid.Column="2" Text="CrowdKeys"
                        FontWeight="SemiBold" FontSize="14" VerticalAlignment="Center"/>
 
             <!-- Connection chip -->

@@ -2,17 +2,17 @@ using System.Collections.ObjectModel;
 using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using TwitchKeyboard.Models;
-using TwitchKeyboard.Services;
-using static TwitchKeyboard.Models.StepType;
+using CrowdKeys.Models;
+using CrowdKeys.Services;
+using static CrowdKeys.Models.StepType;
 
-namespace TwitchKeyboard.ViewModels;
+namespace CrowdKeys.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
     private static readonly string SettingsPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "TwitchKeyboard", "settings.json");
+        "CrowdKeys", "settings.json");
 
     private readonly TwitchAuthService _auth = new();
     private readonly TwitchEventSubService _eventSub = new();

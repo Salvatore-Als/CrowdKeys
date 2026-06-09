@@ -1,7 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace TwitchKeyboard.Models;
+namespace CrowdKeys.Models;
 
 public partial class RedemptionBinding : ObservableObject
 {

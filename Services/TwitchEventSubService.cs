@@ -2,7 +2,7 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
 
-namespace TwitchKeyboard.Services;
+namespace CrowdKeys.Services;
 
 public class TwitchEventSubService : IDisposable
 {

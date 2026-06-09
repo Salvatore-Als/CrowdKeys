@@ -2,9 +2,9 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
-using TwitchKeyboard.ViewModels;
+using CrowdKeys.ViewModels;
 
-namespace TwitchKeyboard;
+namespace CrowdKeys;
 
 /// <summary>
 /// Given a view model, returns the corresponding view if possible.
