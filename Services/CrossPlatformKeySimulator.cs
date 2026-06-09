@@ -50,19 +50,81 @@ public class CrossPlatformKeySimulator : IKeySimulator
             LinuxMoveMouse(deltaX, deltaY);
     }
 
-    // ── Windows keyboard ──────────────────────────────────────────────────────
+    // ── Windows ───────────────────────────────────────────────────────────────
 
-    [DllImport("user32.dll")] private static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, nint dwExtraInfo);
-    private const uint KEYEVENTF_KEYUP = 0x0002;
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern uint SendInput(uint nInputs, INPUT[] pInputs, int cbSize);
+
+    [DllImport("user32.dll")]
+    private static extern uint MapVirtualKey(uint uCode, uint uMapType);
+
+    private const uint MAPVK_VK_TO_VSC       = 0;
+    private const uint INPUT_MOUSE           = 0;
+    private const uint INPUT_KEYBOARD        = 1;
+    private const uint KEYEVENTF_EXTENDEDKEY = 0x0001;
+    private const uint KEYEVENTF_KEYUP       = 0x0002;
+    private const uint KEYEVENTF_SCANCODE    = 0x0008;
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct KEYBDINPUT
+    {
+        public ushort wVk;
+        public ushort wScan;
+        public uint   dwFlags;
+        public uint   time;
+        public nint   dwExtraInfo;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct MOUSEINPUT
+    {
+        public int   dx;
+        public int   dy;
+        public uint  mouseData;
+        public uint  dwFlags;
+        public uint  time;
+        public nint  dwExtraInfo;
+    }
+
+    [StructLayout(LayoutKind.Explicit, Size = 40)]
+    private struct INPUT
+    {
+        [FieldOffset(0)] public uint       type;
+        [FieldOffset(8)] public MOUSEINPUT mi;
+        [FieldOffset(8)] public KEYBDINPUT ki;
+    }
+
+    private static bool IsExtendedKey(byte vk) => vk is 0x25 or 0x26 or 0x27 or 0x28;
 
     private static void WindowsPressCombo(IReadOnlyList<string> keys)
     {
         var vkCodes = keys.Select(WindowsVkCode).Where(vk => vk != 0).ToList();
-        foreach (var vk in vkCodes)              
-            keybd_event(vk, 0, 0, 0);
+        if (vkCodes.Count == 0) return;
+
+        var inputs = new INPUT[vkCodes.Count * 2];
+        for (var i = 0; i < vkCodes.Count; i++)
+        {
+            var scan  = (ushort)MapVirtualKey(vkCodes[i], MAPVK_VK_TO_VSC);
+            var flags = KEYEVENTF_SCANCODE | (IsExtendedKey(vkCodes[i]) ? KEYEVENTF_EXTENDEDKEY : 0u);
         
-        foreach (var vk in Enumerable.Reverse(vkCodes)) 
-            keybd_event(vk, 0, KEYEVENTF_KEYUP, 0);
+            inputs[i] = new INPUT {
+                type = INPUT_KEYBOARD,
+                ki = new KEYBDINPUT { wVk = 0, wScan = scan, dwFlags = flags }
+            };
+        }
+        for (var i = 0; i < vkCodes.Count; i++)
+        {
+            var vk    = vkCodes[vkCodes.Count - 1 - i];
+            var scan  = (ushort)MapVirtualKey(vk, MAPVK_VK_TO_VSC);
+            var flags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP | (IsExtendedKey(vk) ? KEYEVENTF_EXTENDEDKEY : 0u);
+        
+            inputs[vkCodes.Count + i] = new INPUT {
+                type = INPUT_KEYBOARD,
+                ki = new KEYBDINPUT { wVk = 0, wScan = scan, dwFlags = flags }
+            };
+        }
+
+        SendInput((uint)inputs.Length, inputs, Marshal.SizeOf<INPUT>());
     }
 
     private static byte WindowsVkCode(string key) => key.ToUpperInvariant() switch
@@ -86,11 +148,6 @@ public class CrossPlatformKeySimulator : IKeySimulator
         _ => 0
     };
 
-    // ── Windows mouse ─────────────────────────────────────────────────────────
-
-    [DllImport("user32.dll")]
-    private static extern void mouse_event(uint dwFlags, int dx, int dy, int dwData, nint dwExtraInfo);
-
     private const uint MOUSEEVENTF_MOVE        = 0x0001;
     private const uint MOUSEEVENTF_LEFTDOWN    = 0x0002;
     private const uint MOUSEEVENTF_LEFTUP      = 0x0004;
@@ -109,21 +166,53 @@ public class CrossPlatformKeySimulator : IKeySimulator
             MouseButton.Middle => (MOUSEEVENTF_MIDDLEDOWN, MOUSEEVENTF_MIDDLEUP),
             _                  => (MOUSEEVENTF_LEFTDOWN,   MOUSEEVENTF_LEFTUP),
         };
-        for (var i = 0; i < repeatCount; i++)
+        var inputs = new[]
         {
-            mouse_event(down, 0, 0, 0, 0);
-            mouse_event(up,   0, 0, 0, 0);
-        }
+            new INPUT { 
+                type = INPUT_MOUSE, 
+                mi = new MOUSEINPUT { 
+                    dwFlags = down,
+                    time = 0,
+                    dwExtraInfo = 0
+                } 
+            },
+            new INPUT { 
+                type = INPUT_MOUSE, 
+                mi = new MOUSEINPUT { 
+                    dwFlags = up,
+                    time = 0,
+                    dwExtraInfo = 0
+                } 
+            },
+        };
+    
+        for (var i = 0; i < repeatCount; i++)
+            SendInput(2, inputs, Marshal.SizeOf<INPUT>());
     }
 
     private static void WindowsScrollMouse(ScrollDirection direction, int amount)
     {
-        var delta = direction == ScrollDirection.Up ? WHEEL_DELTA * amount : -WHEEL_DELTA * amount;
-        mouse_event(MOUSEEVENTF_WHEEL, 0, 0, delta, 0);
+        var delta  = direction == ScrollDirection.Up ? WHEEL_DELTA * amount : -WHEEL_DELTA * amount;
+        var inputs = new[] { new INPUT { type = INPUT_MOUSE, mi = new MOUSEINPUT { dwFlags = MOUSEEVENTF_WHEEL, mouseData = (uint)delta,
+                    time = 0,
+                    dwExtraInfo = 0
+                } } };
+        
+        SendInput(1, inputs, Marshal.SizeOf<INPUT>());
     }
 
     private static void WindowsMoveMouse(int deltaX, int deltaY)
-        => mouse_event(MOUSEEVENTF_MOVE, deltaX, deltaY, 0, 0);
+    {
+        var inputs = new[] { 
+            new INPUT { type = INPUT_MOUSE, mi = new MOUSEINPUT { dx = deltaX, dy = deltaY, dwFlags = MOUSEEVENTF_MOVE,
+                    time = 0,
+                    dwExtraInfo = 0
+                } 
+            } 
+        };
+    
+        SendInput(1, inputs, Marshal.SizeOf<INPUT>());
+    }
 
     // ── macOS keyboard ────────────────────────────────────────────────────────
 
@@ -159,7 +248,7 @@ public class CrossPlatformKeySimulator : IKeySimulator
     {
         var modifiers = keys.Where(IsMacModifier).ToList();
         var mainKeys  = keys.Where(k => !IsMacModifier(k)).ToList();
-        var flags     = MacModifierFlags(modifiers);
+        var flags = MacModifierFlags(modifiers);
 
         foreach (var mod in modifiers)
         {
@@ -244,6 +333,7 @@ public class CrossPlatformKeySimulator : IKeySimulator
     {
         var ev  = CGEventCreate(0);
         var pos = CGEventGetLocation(ev);
+    
         CFRelease(ev);
         return pos;
     }
@@ -281,6 +371,7 @@ public class CrossPlatformKeySimulator : IKeySimulator
         pos.X += deltaX;
         pos.Y += deltaY;
         var ev = CGEventCreateMouseEvent(0, kCGEventMouseMoved, pos, 0);
+    
         CGEventPost(kCGHIDEventTap, ev); CFRelease(ev);
     }
 
