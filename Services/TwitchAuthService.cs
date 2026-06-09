@@ -87,6 +87,31 @@ public class TwitchAuthService : IDisposable
         return ParseTokenResponse(await resp.Content.ReadAsStringAsync(ct));
     }
 
+    public async Task<IReadOnlyList<string>> GetChannelRewardsAsync(
+        string clientId, string accessToken, string userId, CancellationToken ct = default)
+    {
+        var url = $"https://api.twitch.tv/helix/channel_points/custom_rewards?broadcaster_id={userId}";
+    
+        using var req = new HttpRequestMessage(HttpMethod.Get, url);
+        req.Headers.Add("Authorization", $"Bearer {accessToken}");
+        req.Headers.Add("Client-Id", clientId);
+
+        var resp = await _http.SendAsync(req, ct);
+        resp.EnsureSuccessStatusCode();
+
+        using var doc = JsonDocument.Parse(await resp.Content.ReadAsStringAsync(ct));
+        var titles = new List<string>();
+
+        foreach (var item in doc.RootElement.GetProperty("data").EnumerateArray())
+        {
+            var title = item.GetProperty("title").GetString();
+            if (title is not null)
+                titles.Add(title);
+        }
+
+        return titles;
+    }
+
     public async Task<string> GetUserIdAsync(string clientId, string accessToken, CancellationToken ct = default)
     {
         using var req = new HttpRequestMessage(HttpMethod.Get, "https://api.twitch.tv/helix/users");

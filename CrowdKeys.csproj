@@ -1,6 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <Import Project="build.config.props" />
+  <Import Project="build.config.private.props" />
+
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>

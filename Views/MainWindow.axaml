@@ -342,17 +342,30 @@
             <!-- ── Col 0 : Bindings list ── -->
             <Grid Grid.Column="0" RowDefinitions="Auto,*,1,Auto">
 
-                <TextBlock Grid.Row="0" Text="BINDINGS" FontSize="11"
-                           Foreground="#6b6b7a" FontWeight="SemiBold" LetterSpacing="1"
-                           Margin="16,10,16,4"/>
+                <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="16,10,16,4">
+                    <TextBlock Grid.Column="0" Text="BINDINGS" FontSize="11"
+                               Foreground="#6b6b7a" FontWeight="SemiBold" LetterSpacing="1"
+                               VerticalAlignment="Center"/>
+                    <Button Grid.Column="1" Classes="ghost"
+                            Command="{Binding RefreshRewardsCommand}"
+                            IsEnabled="{Binding IsConnected}"
+                            Padding="6,2" VerticalAlignment="Center"
+                            ToolTip.Tip="Actualiser la liste des rewards">
+                        <Panel>
+                            <TextBlock Text="↻" FontSize="14"
+                                       IsVisible="{Binding !IsLoadingRewards}"/>
+                            <TextBlock Text="…" FontSize="14"
+                                       IsVisible="{Binding IsLoadingRewards}"/>
+                        </Panel>
+                    </Button>
+                </Grid>
 
                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
                     <ListBox ItemsSource="{Binding Bindings}" SelectedItem="{Binding SelectedBinding}">
                         <ListBox.ItemTemplate>
                             <DataTemplate x:DataType="models:RedemptionBinding">
                                 <Border Margin="10,3,10,3" Padding="12,10"
-                                        CornerRadius="6" Cursor="Hand"
-                                        Background="{Binding IsEnabled, Converter={x:Static ObjectConverters.IsNotNull}, FallbackValue=#1a1a22}">
+                                        CornerRadius="6" Cursor="Hand">
                                     <Border.Styles>
                                         <Style Selector="Border">
                                             <Setter Property="Background" Value="#1a1a22"/>
@@ -374,6 +387,10 @@
                                                 <TextBlock Text="étape(s)"
                                                            FontSize="10" Foreground="#3d3d4a"/>
                                             </StackPanel>
+                                            <TextBlock Text="Reward inexistant sur Twitch"
+                                                       FontSize="10" Foreground="#f0a500"
+                                                       FontStyle="Italic"
+                                                       IsVisible="{Binding IsOrphaned}"/>
                                             <TextBlock Text="{Binding Description}"
                                                        FontSize="11" Foreground="#7a7a8a"
                                                        TextTrimming="CharacterEllipsis"
@@ -407,9 +424,17 @@
                 <Border Grid.Row="2" Background="#2d2d35" Margin="10,0"/>
 
                 <Grid Grid.Row="3" ColumnDefinitions="*,8,Auto" Margin="10,10,10,12">
-                    <TextBox Grid.Column="0" Text="{Binding NewRewardName}"
-                             PlaceholderText="Nom du reward…" FontSize="12"/>
-                    <Button Grid.Column="2" Command="{Binding AddBindingCommand}" Padding="10,6" FontSize="12">
+                    <ComboBox Grid.Column="0"
+                              ItemsSource="{Binding AvailableRewards}"
+                              SelectedItem="{Binding SelectedNewReward}"
+                              PlaceholderText="Sélectionnez un reward…"
+                              FontSize="12"
+                              IsEnabled="{Binding IsConnected}"
+                              HorizontalAlignment="Stretch"/>
+                    <Button Grid.Column="2"
+                            Command="{Binding AddBindingCommand}"
+                            IsEnabled="{Binding SelectedNewReward, Converter={x:Static ObjectConverters.IsNotNull}}"
+                            Padding="10,6" FontSize="12">
                         + Binding
                     </Button>
                 </Grid>

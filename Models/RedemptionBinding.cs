@@ -12,6 +12,7 @@ public partial class RedemptionBinding : ObservableObject
 
     public bool HasDescription => !string.IsNullOrEmpty(Description);
     [ObservableProperty] private bool _isEnabled = true;
+    [ObservableProperty] private bool _isOrphaned;
 
     public ObservableCollection<KeyStep> Steps { get; set; } = [];
 }

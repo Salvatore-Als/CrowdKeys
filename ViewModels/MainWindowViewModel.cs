@@ -31,14 +31,18 @@ public partial class MainWindowViewModel : ViewModelBase
     // Stored tokens - not bound to UI
     private string _accessToken = "";
     private string _refreshToken = "";
+    private string _userId = "";
     private CancellationTokenSource? _retryCts;
     private bool _initialized;
+
+    [ObservableProperty] private bool _isLoadingRewards;
 
     // ── Bindings ──────────────────────────────────────────────────────────────
 
     [ObservableProperty] private ObservableCollection<RedemptionBinding> _bindings = [];
     [ObservableProperty] private RedemptionBinding? _selectedBinding;
-    [ObservableProperty] private string _newRewardName = "";
+    [ObservableProperty] private ObservableCollection<string> _availableRewards = [];
+    [ObservableProperty] private string? _selectedNewReward;
 
     // ── Available keys ────────────────────────────────────────────────────────
 
@@ -81,6 +85,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 IsConnected = false;
                 StatusColor = "#3d3d4a";
                 ConnectButtonText = "Connecter";
+                ClearBindingOrphans();
                 _ = AutoRetryAsync();
             });
 
@@ -116,6 +121,7 @@ public partial class MainWindowViewModel : ViewModelBase
             StatusColor = "#3d3d4a";
             ConnectButtonText = "Connecter";
             AddToLog("Déconnecté.", "#adadb8");
+            ClearBindingOrphans();
 
             return;
         }
@@ -161,7 +167,9 @@ public partial class MainWindowViewModel : ViewModelBase
     private async Task ConnectWithTokenAsync(CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(_accessToken))
+        {
             throw new UnauthorizedAccessException("Aucun token - authentification requise.");
+        }
 
         string userId;
         try
@@ -172,9 +180,11 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             (_accessToken, _refreshToken) = await _auth.RefreshTokenAsync(ClientId, _refreshToken, ct);
             SaveSettings();
-        
+
             userId = await _auth.GetUserIdAsync(ClientId, _accessToken, ct);
         }
+
+        _userId = userId;
 
         try
         {
@@ -184,7 +194,7 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             (_accessToken, _refreshToken) = await _auth.RefreshTokenAsync(ClientId, _refreshToken, ct);
             SaveSettings();
-        
+
             await _eventSub.ConnectAsync(ClientId, _accessToken, userId, ct);
         }
 
@@ -192,6 +202,8 @@ public partial class MainWindowViewModel : ViewModelBase
         StatusColor = "#00c853";
         ConnectButtonText = "Déconnecter";
         SaveSettings();
+
+        await RefreshRewardsInternalAsync(ct);
     }
 
     private async Task RunDeviceFlowAsync(CancellationToken ct = default)
@@ -252,12 +264,16 @@ public partial class MainWindowViewModel : ViewModelBase
             {
                 _accessToken = "";
                 _refreshToken = "";
+
                 SaveSettings();
                 AddToLog("Session expirée - cliquez sur Connecter pour vous reconnecter.", "#e53935");
+
                 IsConnected = false;
                 StatusColor = "#3d3d4a";
                 ConnectButtonText = "Connecter";
-                
+
+                ClearBindingOrphans();
+
                 return;
             }
             catch (Exception ex)
@@ -285,15 +301,80 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private void AddBinding()
     {
-        if (string.IsNullOrWhiteSpace(NewRewardName)) 
+        if (string.IsNullOrWhiteSpace(SelectedNewReward))
+        {
             return;
+        }
 
-        var binding = new RedemptionBinding { RewardName = NewRewardName.Trim() };
+        var binding = new RedemptionBinding { RewardName = SelectedNewReward };
+        CheckBindingOrphan(binding);
         Bindings.Add(binding);
         SelectedBinding = binding;
-        NewRewardName = "";
+        SelectedNewReward = null;
         SyncBindings();
         SaveSettings();
+    }
+
+    [RelayCommand]
+    private async Task RefreshRewards()
+    {
+        if (string.IsNullOrEmpty(_userId) || string.IsNullOrEmpty(_accessToken))
+            return;
+
+        await RefreshRewardsInternalAsync(CancellationToken.None);
+    }
+
+    private async Task RefreshRewardsInternalAsync(CancellationToken ct)
+    {
+        IsLoadingRewards = true;
+        try
+        {
+            var rewards = await _auth.GetChannelRewardsAsync(ClientId, _accessToken, _userId, ct);
+            AvailableRewards.Clear();
+            foreach (var r in rewards)
+            {
+                AvailableRewards.Add(r);
+            }
+            UpdateBindingOrphans();
+            AddToLog($"{AvailableRewards.Count} reward(s) chargé(s).", "#adadb8");
+        }
+        catch (Exception ex)
+        {
+            AddToLog($"Erreur chargement rewards : {ex.Message}", "#e53935");
+        }
+        finally
+        {
+            IsLoadingRewards = false;
+        }
+    }
+
+    private void UpdateBindingOrphans()
+    {
+        foreach (var binding in Bindings)
+        {
+            CheckBindingOrphan(binding);
+        }
+    }
+
+    private void CheckBindingOrphan(RedemptionBinding binding)
+    {
+        if (AvailableRewards.Count == 0)
+        {
+            binding.IsOrphaned = false;
+            return;
+        }
+
+        binding.IsOrphaned = !AvailableRewards.Any(r => r.Equals(binding.RewardName, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private void ClearBindingOrphans()
+    {
+        AvailableRewards.Clear();
+
+        foreach (var binding in Bindings)
+        {
+            binding.IsOrphaned = false;
+        }
     }
 
     [RelayCommand]
@@ -431,7 +512,14 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private void WatchBinding(RedemptionBinding binding)
     {
-        binding.PropertyChanged += (_, _) => SaveSettings();
+        binding.PropertyChanged += (_, e) =>
+        {
+            SaveSettings();
+            if (e.PropertyName == nameof(RedemptionBinding.RewardName))
+            {
+                CheckBindingOrphan(binding);
+            }
+        };
         foreach (var step in binding.Steps)
             step.PropertyChanged += (_, _) => SaveSettings();
 

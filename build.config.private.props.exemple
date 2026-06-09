@@ -1,0 +1,5 @@
+<Project>
+  <PropertyGroup>
+    <TwitchClientId>REPLACE_WITH_YOUR_TWITCH_CLIENT_ID</TwitchClientId>
+  </PropertyGroup>
+</Project>
