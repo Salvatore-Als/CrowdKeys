@@ -5,8 +5,8 @@ namespace TwitchKeyboard.Services;
 
 public class TwitchAuthService : IDisposable
 {
-    private const string DeviceUrl = "https://id.twitch.tv/oauth2/device";
-    private const string TokenUrl = "https://id.twitch.tv/oauth2/token";
+    private static readonly string DeviceUrl = BuildInfo.DeviceUrl;
+    private static readonly string TokenUrl = BuildInfo.TokenUrl;
     private const string Scope = "channel:read:redemptions";
 
     private readonly HttpClient _http = new();

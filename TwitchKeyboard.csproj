@@ -39,6 +39,9 @@
       <_BuildInfoLines Include="    public const string Version = &quot;$(AppVersion)&quot;%3B" />
       <_BuildInfoLines Include="    public const string ClientId = &quot;$(TwitchClientId)&quot;%3B" />
       <_BuildInfoLines Include="    public const string EventSubUrl = &quot;$(EventSubWssUrl)&quot;%3B" />
+      <_BuildInfoLines Include="    public const string DeviceUrl = &quot;$(TwitchDeviceUrl)&quot;%3B" />
+      <_BuildInfoLines Include="    public const string TokenUrl = &quot;$(TwitchTokenUrl)&quot;%3B" />
+      <_BuildInfoLines Include="    public const string SubscriptionsUrl = &quot;$(TwitchSubscriptionsUrl)&quot;%3B" />
       <_BuildInfoLines Include="}" />
     </ItemGroup>
     <WriteLinesToFile

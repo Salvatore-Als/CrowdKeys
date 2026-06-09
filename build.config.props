@@ -3,5 +3,8 @@
     <AppVersion>1.0.0</AppVersion>
     <TwitchClientId></TwitchClientId>
     <EventSubWssUrl>wss://eventsub.wss.twitch.tv/ws</EventSubWssUrl>
+    <TwitchDeviceUrl>https://id.twitch.tv/oauth2/device</TwitchDeviceUrl>
+    <TwitchTokenUrl>https://id.twitch.tv/oauth2/token</TwitchTokenUrl>
+    <TwitchSubscriptionsUrl>https://api.twitch.tv/helix/eventsub/subscriptions</TwitchSubscriptionsUrl>
   </PropertyGroup>
 </Project>

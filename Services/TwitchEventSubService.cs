@@ -7,7 +7,7 @@ namespace TwitchKeyboard.Services;
 public class TwitchEventSubService : IDisposable
 {
     private static readonly string WssUrl = BuildInfo.EventSubUrl;
-    private const string SubscriptionsUrl = "https://api.twitch.tv/helix/eventsub/subscriptions";
+    private static readonly string SubscriptionsUrl = BuildInfo.SubscriptionsUrl;
 
     private readonly HttpClient _http = new();
     private ClientWebSocket? _ws;
