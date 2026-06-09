@@ -16,8 +16,6 @@ public class RedemptionService
     private readonly IKeySimulator _keySimulator;
     private List<RedemptionBinding> _bindings = [];
 
-    public bool IsActive { get; set; } = true;
-
     public event EventHandler<LogEntry>? LogAdded;
 
     public RedemptionService(IKeySimulator keySimulator) => _keySimulator = keySimulator;
@@ -27,9 +25,6 @@ public class RedemptionService
 
     public async Task OnRewardReceivedAsync(string rewardName)
     {
-        if (!IsActive)
-            return;
-
         var match = _bindings.FirstOrDefault(b =>
             b.IsEnabled &&
             b.RewardName.Equals(rewardName, StringComparison.OrdinalIgnoreCase));

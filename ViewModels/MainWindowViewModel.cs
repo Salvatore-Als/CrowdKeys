@@ -23,17 +23,14 @@ public partial class MainWindowViewModel : ViewModelBase
     private static readonly string ClientId = BuildInfo.ClientId;
 
     [ObservableProperty] private bool _isConnected;
-    [ObservableProperty] private bool _isActive = true;
     [ObservableProperty] private string _statusColor = "#3d3d4a";
     [ObservableProperty] private string _connectButtonText = "Connecter";
-    [ObservableProperty] private string _activeButtonText = "ACTIF";
 
     // Stored tokens - not bound to UI
     private string _accessToken = "";
     private string _refreshToken = "";
     private string _userId = "";
     private CancellationTokenSource? _retryCts;
-    private bool _initialized;
 
     [ObservableProperty] private bool _isLoadingRewards;
 
@@ -92,19 +89,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
         LoadSettings();
         SyncBindings();
-        _initialized = true;
     }
 
     // ── Partial callbacks ─────────────────────────────────────────────────────
-
-    partial void OnIsActiveChanged(bool value)
-    {
-        _redemption.IsActive = value;
-        ActiveButtonText = value ? "ACTIF" : "PAUSÉ";
-        if (_initialized)
-            AddToLog(value ? "Récompenses actives." : "Récompenses en pause.", value ? "#00c853" : "#f0a500");
-        SaveSettings();
-    }
 
     partial void OnSelectedBindingChanged(RedemptionBinding? value) => SaveSettings();
 
@@ -508,7 +495,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
             _accessToken = s.AccessToken;
             _refreshToken = s.RefreshToken;
-            IsActive = s.IsActive;
             Bindings = new ObservableCollection<RedemptionBinding>(s.Bindings);
         }
         catch { }
@@ -563,7 +549,6 @@ public partial class MainWindowViewModel : ViewModelBase
             {
                 AccessToken = _accessToken,
                 RefreshToken = _refreshToken,
-                IsActive = IsActive,
                 Bindings = [.. Bindings],
             },
             new JsonSerializerOptions { WriteIndented = true }));
