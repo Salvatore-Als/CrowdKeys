@@ -1,0 +1,694 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:TwitchKeyboard.ViewModels"
+        xmlns:models="using:TwitchKeyboard.Models"
+        xmlns:services="using:TwitchKeyboard.Services"
+        x:Class="TwitchKeyboard.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="TwitchKeyboard"
+        Width="1060" Height="580"
+        MinWidth="860" MinHeight="440"
+        Background="#18181b"
+        FontFamily="Segoe UI, SF Pro Display, Ubuntu, sans-serif">
+
+    <Window.Styles>
+
+        <Style Selector="TextBlock">
+            <Setter Property="Foreground" Value="#efeff1"/>
+        </Style>
+
+        <!-- TextBox -->
+        <Style Selector="TextBox">
+            <Setter Property="Background" Value="#0e0e10"/>
+            <Setter Property="Foreground" Value="#efeff1"/>
+            <Setter Property="BorderBrush" Value="#2d2d35"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="CaretBrush" Value="#9147ff"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="SelectionBrush" Value="#9147ff"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="TextBox:pointerover">
+            <Setter Property="Background" Value="#1a1a22"/>
+            <Setter Property="BorderBrush" Value="#4a4a5a"/>
+        </Style>
+        <Style Selector="TextBox:pointerover /template/ Border">
+            <Setter Property="Background" Value="#1a1a22"/>
+        </Style>
+        <Style Selector="TextBox:focus-within">
+            <Setter Property="Background" Value="#0e0e10"/>
+            <Setter Property="BorderBrush" Value="#9147ff"/>
+        </Style>
+        <Style Selector="TextBox:focus-within /template/ Border">
+            <Setter Property="Background" Value="#0e0e10"/>
+            <Setter Property="BorderBrush" Value="#9147ff"/>
+            <Setter Property="BoxShadow" Value="0 0 0 2 #559147ff"/>
+        </Style>
+        <Style Selector="TextBox /template/ Border">
+            <Setter Property="Background" Value="#0e0e10"/>
+        </Style>
+
+        <!-- NumericUpDown -->
+        <Style Selector="NumericUpDown">
+            <Setter Property="Background" Value="#0e0e10"/>
+            <Setter Property="Foreground" Value="#efeff1"/>
+            <Setter Property="BorderBrush" Value="#2d2d35"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Padding" Value="4,4"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="ShowButtonSpinner" Value="False"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="NumericUpDown:pointerover">
+            <Setter Property="Background" Value="#1a1a22"/>
+            <Setter Property="BorderBrush" Value="#4a4a5a"/>
+        </Style>
+        <Style Selector="NumericUpDown:pointerover /template/ Border">
+            <Setter Property="Background" Value="#1a1a22"/>
+        </Style>
+        <Style Selector="NumericUpDown:focus-within">
+            <Setter Property="BorderBrush" Value="#9147ff"/>
+        </Style>
+        <Style Selector="NumericUpDown:focus-within /template/ Border">
+            <Setter Property="BorderBrush" Value="#9147ff"/>
+            <Setter Property="BoxShadow" Value="0 0 0 2 #559147ff"/>
+        </Style>
+        <Style Selector="NumericUpDown /template/ TextBox">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#efeff1"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="4,0"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="NumericUpDown /template/ TextBox:pointerover">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="NumericUpDown /template/ TextBox:focus-within">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="NumericUpDown /template/ TextBox /template/ Border">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="NumericUpDown /template/ TextBox:focus-within /template/ Border">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BoxShadow" Value="0 0 0 0 #00000000"/>
+        </Style>
+
+        <!-- ComboBox -->
+        <Style Selector="ComboBox">
+            <Setter Property="Background" Value="#0e0e10"/>
+            <Setter Property="Foreground" Value="#efeff1"/>
+            <Setter Property="BorderBrush" Value="#2d2d35"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="ComboBox:pointerover">
+            <Setter Property="Background" Value="#1a1a22"/>
+            <Setter Property="BorderBrush" Value="#4a4a5a"/>
+        </Style>
+        <Style Selector="ComboBox:pointerover /template/ Border">
+            <Setter Property="Background" Value="#1a1a22"/>
+        </Style>
+        <Style Selector="ComboBox:focus, ComboBox:focus-within">
+            <Setter Property="BorderBrush" Value="#9147ff"/>
+        </Style>
+        <Style Selector="ComboBox:focus /template/ Border, ComboBox:focus-within /template/ Border">
+            <Setter Property="BorderBrush" Value="#9147ff"/>
+            <Setter Property="BoxShadow" Value="0 0 0 2 #559147ff"/>
+        </Style>
+        <Style Selector="ComboBox /template/ Border">
+            <Setter Property="Background" Value="#0e0e10"/>
+        </Style>
+        <Style Selector="ComboBoxItem">
+            <Setter Property="Background" Value="#18181b"/>
+            <Setter Property="Foreground" Value="#efeff1"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+        <Style Selector="ComboBoxItem:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#2d2d35"/>
+        </Style>
+        <Style Selector="ComboBoxItem:selected /template/ ContentPresenter">
+            <Setter Property="Background" Value="#2a1f4a"/>
+        </Style>
+
+        <!-- Buttons -->
+        <Style Selector="Button">
+            <Setter Property="Background" Value="#9147ff"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Padding" Value="14,7"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+        <Style Selector="Button:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#772ce8"/>
+        </Style>
+        <Style Selector="Button:pressed /template/ ContentPresenter">
+            <Setter Property="Background" Value="#5c16c5"/>
+        </Style>
+
+        <Style Selector="Button.ghost">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#adadb8"/>
+            <Setter Property="BorderBrush" Value="#2d2d35"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,5"/>
+        </Style>
+        <Style Selector="Button.ghost /template/ ContentPresenter">
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="Button.ghost:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#2d2d35"/>
+        </Style>
+
+        <Style Selector="Button.danger">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#6b6b7a"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="4,2"/>
+        </Style>
+        <Style Selector="Button.danger:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#3a1a1a"/>
+        </Style>
+        <Style Selector="Button.danger:pointerover TextBlock">
+            <Setter Property="Foreground" Value="#e53935"/>
+        </Style>
+
+        <!-- Config toggle -->
+        <Style Selector="ToggleButton.configToggle">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#6b6b7a"/>
+            <Setter Property="BorderBrush" Value="#2d2d35"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="11"/>
+        </Style>
+        <Style Selector="ToggleButton.configToggle:checked /template/ ContentPresenter">
+            <Setter Property="Background" Value="#1f1a2e"/>
+        </Style>
+        <Style Selector="ToggleButton.configToggle:checked">
+            <Setter Property="BorderBrush" Value="#9147ff"/>
+            <Setter Property="Foreground" Value="#9147ff"/>
+        </Style>
+        <Style Selector="ToggleButton.configToggle:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#222228"/>
+        </Style>
+
+        <!-- Global active toggle -->
+        <Style Selector="ToggleButton.global">
+            <Setter Property="Background" Value="#3a1a1a"/>
+            <Setter Property="Foreground" Value="#e53935"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style Selector="ToggleButton.global:checked /template/ ContentPresenter">
+            <Setter Property="Background" Value="#1a3a2a"/>
+        </Style>
+        <Style Selector="ToggleButton.global:checked TextBlock">
+            <Setter Property="Foreground" Value="#00c853"/>
+        </Style>
+        <Style Selector="ToggleButton.global:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#4a2020"/>
+        </Style>
+        <Style Selector="ToggleButton.global:checked:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#1e4a30"/>
+        </Style>
+
+        <!-- Per-binding toggle -->
+        <Style Selector="ToggleButton.bindingToggle">
+            <Setter Property="Background" Value="#2a1a1a"/>
+            <Setter Property="BorderBrush" Value="#3a2a2a"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Padding" Value="7,3"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="11"/>
+        </Style>
+        <Style Selector="ToggleButton.bindingToggle:checked /template/ ContentPresenter">
+            <Setter Property="Background" Value="#1a2a1a"/>
+        </Style>
+        <Style Selector="ToggleButton.bindingToggle:checked">
+            <Setter Property="BorderBrush" Value="#2a3a2a"/>
+        </Style>
+
+        <!-- Modifier key toggle -->
+        <Style Selector="ToggleButton.modifier">
+            <Setter Property="Background" Value="#1a1a22"/>
+            <Setter Property="Foreground" Value="#8888a0"/>
+            <Setter Property="BorderBrush" Value="#2d2d35"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+        <Style Selector="ToggleButton.modifier:checked /template/ ContentPresenter">
+            <Setter Property="Background" Value="#4a2a8a"/>
+        </Style>
+        <Style Selector="ToggleButton.modifier:checked">
+            <Setter Property="Foreground" Value="#ffffff"/>
+            <Setter Property="BorderBrush" Value="#9147ff"/>
+            <Setter Property="BorderThickness" Value="1.5"/>
+        </Style>
+        <Style Selector="ToggleButton.modifier:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#252530"/>
+        </Style>
+        <Style Selector="ToggleButton.modifier:checked:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#5a35a0"/>
+        </Style>
+
+        <Style Selector="ListBox">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+        </Style>
+        <Style Selector="ListBoxItem">
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="ScrollViewer">
+            <Setter Property="HorizontalScrollBarVisibility" Value="Disabled"/>
+        </Style>
+
+    </Window.Styles>
+
+    <Grid RowDefinitions="44,*,Auto">
+
+        <!-- ── Row 0 : Title bar ── -->
+        <Border Grid.Row="0" Background="#0e0e10">
+        <Grid ColumnDefinitions="Auto,8,Auto,*,Auto,8,Auto"
+              Margin="16,0">
+
+            <!-- Status dot -->
+            <Ellipse Grid.Column="0" Width="10" Height="10" VerticalAlignment="Center">
+                <Ellipse.Fill>
+                    <SolidColorBrush Color="{Binding StatusColor}"/>
+                </Ellipse.Fill>
+            </Ellipse>
+
+            <!-- Title -->
+            <TextBlock Grid.Column="2" Text="TwitchKeyboard"
+                       FontWeight="SemiBold" FontSize="14" VerticalAlignment="Center"/>
+
+            <!-- Connection chip -->
+            <Panel Grid.Column="2" Margin="140,0,0,0" VerticalAlignment="Center">
+                <Border CornerRadius="100" Padding="8,3" Background="#1a3a2a"
+                        IsVisible="{Binding IsConnected}">
+                    <TextBlock Text="Connecté" FontSize="10" FontWeight="SemiBold" Foreground="#00c853"/>
+                </Border>
+                <Border CornerRadius="100" Padding="8,3" Background="#28282e"
+                        IsVisible="{Binding !IsConnected}">
+                    <TextBlock Text="Déconnecté" FontSize="10" FontWeight="SemiBold" Foreground="#6b6b7a"/>
+                </Border>
+            </Panel>
+
+            <!-- Connect -->
+            <Button Grid.Column="4" VerticalAlignment="Center"
+                    Command="{Binding ToggleConnectCommand}" Padding="14,7" FontSize="12">
+                <TextBlock Text="{Binding ConnectButtonText}"/>
+            </Button>
+
+            <ToggleButton Grid.Column="6" Classes="global" VerticalAlignment="Center"
+                          IsChecked="{Binding IsActive}">
+                <TextBlock Text="{Binding ActiveButtonText}" FontSize="12" FontWeight="SemiBold"/>
+            </ToggleButton>
+        </Grid>
+        </Border>
+
+        <!-- ── Row 1 : Main body ── -->
+        <Grid Grid.Row="1" ColumnDefinitions="260,1,*,1,200">
+
+            <!-- ── Col 0 : Bindings list ── -->
+            <Grid Grid.Column="0" RowDefinitions="Auto,*,1,Auto">
+
+                <TextBlock Grid.Row="0" Text="BINDINGS" FontSize="11"
+                           Foreground="#6b6b7a" FontWeight="SemiBold" LetterSpacing="1"
+                           Margin="16,10,16,4"/>
+
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <ListBox ItemsSource="{Binding Bindings}" SelectedItem="{Binding SelectedBinding}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="models:RedemptionBinding">
+                                <Border Margin="10,3,10,3" Padding="12,10"
+                                        CornerRadius="6" Cursor="Hand"
+                                        Background="{Binding IsEnabled, Converter={x:Static ObjectConverters.IsNotNull}, FallbackValue=#1a1a22}">
+                                    <Border.Styles>
+                                        <Style Selector="Border">
+                                            <Setter Property="Background" Value="#1a1a22"/>
+                                        </Style>
+                                        <Style Selector="Border:pointerover">
+                                            <Setter Property="Background" Value="#22222e"/>
+                                        </Style>
+                                    </Border.Styles>
+                                    <Grid ColumnDefinitions="*,Auto,28">
+
+                                        <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="3">
+                                            <TextBlock Text="{Binding RewardName}"
+                                                       FontSize="13" FontWeight="SemiBold"
+                                                       FontFamily="Cascadia Code, Consolas, monospace"
+                                                       TextTrimming="CharacterEllipsis"/>
+                                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                                <TextBlock Text="{Binding Steps.Count}"
+                                                           FontSize="10" Foreground="#6b6b7a"/>
+                                                <TextBlock Text="étape(s)"
+                                                           FontSize="10" Foreground="#3d3d4a"/>
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding Description}"
+                                                       FontSize="11" Foreground="#7a7a8a"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       IsVisible="{Binding HasDescription}"/>
+                                        </StackPanel>
+
+                                        <ToggleButton Grid.Column="1" Classes="bindingToggle"
+                                                     IsChecked="{Binding IsEnabled}"
+                                                     VerticalAlignment="Center" Margin="0,0,6,0">
+                                            <Panel>
+                                                <TextBlock Text="ACTIF" FontSize="10" FontWeight="SemiBold"
+                                                           Foreground="#00c853" IsVisible="{Binding IsEnabled}"/>
+                                                <TextBlock Text="INACTIF" FontSize="10" FontWeight="SemiBold"
+                                                           Foreground="#e53935" IsVisible="{Binding !IsEnabled}"/>
+                                            </Panel>
+                                        </ToggleButton>
+
+                                        <Button Grid.Column="2" Classes="danger"
+                                                VerticalAlignment="Center" HorizontalAlignment="Center"
+                                                Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).DeleteBindingCommand}"
+                                                CommandParameter="{Binding}">
+                                            <TextBlock Text="✕" FontSize="11"/>
+                                        </Button>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </ScrollViewer>
+
+                <Border Grid.Row="2" Background="#2d2d35" Margin="10,0"/>
+
+                <Grid Grid.Row="3" ColumnDefinitions="*,8,Auto" Margin="10,10,10,12">
+                    <TextBox Grid.Column="0" Text="{Binding NewRewardName}"
+                             PlaceholderText="Nom du reward…" FontSize="12"/>
+                    <Button Grid.Column="2" Command="{Binding AddBindingCommand}" Padding="10,6" FontSize="12">
+                        + Binding
+                    </Button>
+                </Grid>
+            </Grid>
+
+            <!-- ── Col 1 : Divider ── -->
+            <Border Grid.Column="1" Background="#2d2d35"/>
+
+            <!-- ── Col 2 : Step editor ── -->
+            <Grid Grid.Column="2" RowDefinitions="Auto,Auto,*,1,Auto">
+
+                <!-- Header -->
+                <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="16,10,16,4">
+                    <TextBlock Grid.Column="0" Text="SÉQUENCE DE TOUCHES"
+                               FontSize="11" Foreground="#6b6b7a" FontWeight="SemiBold" LetterSpacing="1"
+                               VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding SelectedBinding.RewardName}"
+                               FontSize="11" Foreground="#9147ff"
+                               FontFamily="Cascadia Code, Consolas, monospace"
+                               VerticalAlignment="Center"
+                               IsVisible="{Binding SelectedBinding, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                </Grid>
+
+                <!-- Description -->
+                <Border Grid.Row="1" Padding="14,0,14,8"
+                        IsVisible="{Binding SelectedBinding, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    <TextBox Text="{Binding SelectedBinding.Description}"
+                             PlaceholderText="Description du binding (optionnel)…"
+                             FontSize="12"/>
+                </Border>
+
+                <!-- Empty state -->
+                <StackPanel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8"
+                            IsVisible="{Binding SelectedBinding, Converter={x:Static ObjectConverters.IsNull}}">
+                    <TextBlock Text="↑" FontSize="28" Foreground="#3d3d4a" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Sélectionnez un binding" FontSize="12" Foreground="#3d3d4a"/>
+                </StackPanel>
+
+                <!-- Step cards -->
+                <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto"
+                              IsVisible="{Binding SelectedBinding, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    <ItemsControl ItemsSource="{Binding SelectedBinding.Steps}" Margin="0,4,0,4">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <!-- Card -->
+                                <Border Margin="14,4" Padding="12,10"
+                                        Background="#1e1e26"
+                                        BorderBrush="#2d2d35" BorderThickness="1"
+                                        CornerRadius="8"
+                                        DragDrop.AllowDrop="True"
+                                        DragDrop.DragOver="StepBorder_DragOver"
+                                        DragDrop.Drop="StepBorder_Drop">
+                                    <Grid ColumnDefinitions="22,*">
+                                        <Border Grid.Column="0" Background="Transparent"
+                                                Cursor="SizeAll" VerticalAlignment="Stretch"
+                                                PointerPressed="DragHandle_PointerPressed">
+                                            <TextBlock Text="⠿" FontSize="13" Foreground="#3d3d4a"
+                                                       VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                        </Border>
+                                        <StackPanel Grid.Column="1" Spacing="10" Margin="6,0,0,0">
+
+                                        <!-- Card header -->
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="0" VerticalAlignment="Center">
+                                                <TextBlock IsVisible="{Binding IsKeyStep}"          Text="TOUCHE"      FontSize="10" FontWeight="SemiBold" Foreground="#adadb8"/>
+                                                <TextBlock IsVisible="{Binding IsPauseStep}"        Text="PAUSE"       FontSize="10" FontWeight="SemiBold" Foreground="#adadb8"/>
+                                                <TextBlock IsVisible="{Binding IsMouseClickStep}"   Text="CLIC SOURIS" FontSize="10" FontWeight="SemiBold" Foreground="#adadb8"/>
+                                                <TextBlock IsVisible="{Binding IsMouseScrollStep}"  Text="MOLETTE"     FontSize="10" FontWeight="SemiBold" Foreground="#adadb8"/>
+                                                <TextBlock IsVisible="{Binding IsMouseMoveStep}"    Text="DÉPLACEMENT" FontSize="10" FontWeight="SemiBold" Foreground="#adadb8"/>
+                                            </StackPanel>
+
+                                            <!-- Delete -->
+                                            <Button Grid.Column="1" Classes="danger"
+                                                    VerticalAlignment="Center"
+                                                    Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).DeleteStepCommand}"
+                                                    CommandParameter="{Binding}">
+                                                <TextBlock Text="✕" FontSize="11"/>
+                                            </Button>
+                                        </Grid>
+
+                                        <!-- KEY step body -->
+                                        <StackPanel IsVisible="{Binding IsKeyStep}" Spacing="8">
+
+                                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                                <ToggleButton Classes="modifier" IsChecked="{Binding UseCtrl}" Content="CTRL"/>
+                                                <ToggleButton Classes="modifier" IsChecked="{Binding UseShift}" Content="SHIFT"/>
+                                                <ToggleButton Classes="modifier" IsChecked="{Binding UseAlt}" Content="ALT"/>
+                                                <ToggleButton Classes="modifier" IsChecked="{Binding UseWin}" Content="WIN"/>
+                                                <ComboBox SelectedItem="{Binding MainKey}"
+                                                          ItemsSource="{x:Static vm:MainWindowViewModel.AvailableKeys}"
+                                                          PlaceholderText="Touche…" MinWidth="90" FontSize="13"/>
+                                            </StackPanel>
+
+                                            <Grid ColumnDefinitions="*,12,*">
+                                                <StackPanel Grid.Column="0" Spacing="5">
+                                                    <TextBlock Text="ITÉRATIONS" FontSize="9" Foreground="#6b6b7a" FontWeight="SemiBold"/>
+                                                    <NumericUpDown Value="{Binding RepeatCount}" Minimum="1" Maximum="99"
+                                                                   FormatString="0" Increment="1" ParsingNumberStyle="Integer"/>
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="2" Spacing="5"
+                                                            IsVisible="{Binding CanConfigureDelay}">
+                                                    <TextBlock Text="DÉLAI ENTRE (MS) • 0 = INSTANTANÉ" FontSize="9" Foreground="#6b6b7a" FontWeight="SemiBold"/>
+                                                    <NumericUpDown Value="{Binding DelayBetweenMs}" Minimum="0" Maximum="5000"
+                                                                   FormatString="0" Increment="50" ParsingNumberStyle="Integer"/>
+                                                </StackPanel>
+                                            </Grid>
+                                        </StackPanel>
+
+                                        <!-- PAUSE step body -->
+                                        <StackPanel IsVisible="{Binding IsPauseStep}" Spacing="5">
+                                            <TextBlock Text="DURÉE (MS)" FontSize="9" Foreground="#6b6b7a" FontWeight="SemiBold"/>
+                                            <NumericUpDown Value="{Binding DurationMs}" Minimum="0" Maximum="60000"
+                                                           FormatString="0" Increment="100" ParsingNumberStyle="Integer"/>
+                                        </StackPanel>
+
+                                        <!-- MOUSE CLICK step body -->
+                                        <StackPanel IsVisible="{Binding IsMouseClickStep}" Spacing="8">
+                                            <TextBlock Text="BOUTON" FontSize="9" Foreground="#6b6b7a" FontWeight="SemiBold"/>
+                                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                                <ToggleButton Classes="modifier" IsChecked="{Binding IsLeftClick}"   Content="GAUCHE"/>
+                                                <ToggleButton Classes="modifier" IsChecked="{Binding IsRightClick}"  Content="DROIT"/>
+                                                <ToggleButton Classes="modifier" IsChecked="{Binding IsMiddleClick}" Content="MILIEU"/>
+                                            </StackPanel>
+                                            <Grid ColumnDefinitions="*,12,*">
+                                                <StackPanel Grid.Column="0" Spacing="5">
+                                                    <TextBlock Text="ITÉRATIONS" FontSize="9" Foreground="#6b6b7a" FontWeight="SemiBold"/>
+                                                    <NumericUpDown Value="{Binding RepeatCount}" Minimum="1" Maximum="99"
+                                                                   FormatString="0" Increment="1" ParsingNumberStyle="Integer"/>
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="2" Spacing="5"
+                                                            IsVisible="{Binding CanConfigureDelay}">
+                                                    <TextBlock Text="DÉLAI ENTRE (MS) • 0 = INSTANTANÉ" FontSize="9" Foreground="#6b6b7a" FontWeight="SemiBold"/>
+                                                    <NumericUpDown Value="{Binding DelayBetweenMs}" Minimum="0" Maximum="5000"
+                                                                   FormatString="0" Increment="50" ParsingNumberStyle="Integer"/>
+                                                </StackPanel>
+                                            </Grid>
+                                        </StackPanel>
+
+                                        <!-- MOUSE SCROLL step body -->
+                                        <StackPanel IsVisible="{Binding IsMouseScrollStep}" Spacing="8">
+                                            <TextBlock Text="DIRECTION" FontSize="9" Foreground="#6b6b7a" FontWeight="SemiBold"/>
+                                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                                <ToggleButton Classes="modifier" IsChecked="{Binding IsScrollUp}"   Content="⬆ HAUT"/>
+                                                <ToggleButton Classes="modifier" IsChecked="{Binding IsScrollDown}" Content="⬇ BAS"/>
+                                            </StackPanel>
+                                            <StackPanel Spacing="5">
+                                                <TextBlock Text="QUANTITÉ" FontSize="9" Foreground="#6b6b7a" FontWeight="SemiBold"/>
+                                                <NumericUpDown Value="{Binding ScrollAmount}" Minimum="1" Maximum="100"
+                                                               FormatString="0" Increment="1" ParsingNumberStyle="Integer"/>
+                                            </StackPanel>
+                                        </StackPanel>
+
+                                        <!-- MOUSE MOVE step body -->
+                                        <StackPanel IsVisible="{Binding IsMouseMoveStep}" Spacing="8">
+                                            <Grid ColumnDefinitions="*,12,*">
+                                                <StackPanel Grid.Column="0" Spacing="5">
+                                                    <TextBlock Text="X (PX)" FontSize="9" Foreground="#6b6b7a" FontWeight="SemiBold"/>
+                                                    <NumericUpDown Value="{Binding MoveX}" Minimum="-5000" Maximum="5000"
+                                                                   FormatString="0" Increment="10" ParsingNumberStyle="Integer"/>
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="2" Spacing="5">
+                                                    <TextBlock Text="Y (PX)" FontSize="9" Foreground="#6b6b7a" FontWeight="SemiBold"/>
+                                                    <NumericUpDown Value="{Binding MoveY}" Minimum="-5000" Maximum="5000"
+                                                                   FormatString="0" Increment="10" ParsingNumberStyle="Integer"/>
+                                                </StackPanel>
+                                            </Grid>
+                                            <StackPanel Spacing="5">
+                                                <TextBlock Text="VITESSE (MS) • 0 = INSTANTANÉ" FontSize="9" Foreground="#6b6b7a" FontWeight="SemiBold"/>
+                                                <NumericUpDown Value="{Binding MoveSpeedMs}" Minimum="0" Maximum="10000"
+                                                               FormatString="0" Increment="50" ParsingNumberStyle="Integer"/>
+                                            </StackPanel>
+                                        </StackPanel>
+
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <Border Grid.Row="3" Background="#2d2d35" Margin="14,0"/>
+
+                <!-- Add step buttons -->
+                <StackPanel Grid.Row="4" Orientation="Horizontal" Spacing="8"
+                            HorizontalAlignment="Center" Margin="14,10,14,12"
+                            IsVisible="{Binding SelectedBinding, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    <Button Classes="ghost" Command="{Binding AddKeyStepCommand}" Padding="14,7" FontSize="12" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <TextBlock Text="⌨" FontSize="12" VerticalAlignment="Center"/>
+                            <TextBlock Text="Touche" FontSize="12" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Classes="ghost" Command="{Binding AddPauseStepCommand}" Padding="14,7" FontSize="12" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <TextBlock Text="⏱" FontSize="12" VerticalAlignment="Center"/>
+                            <TextBlock Text="Pause" FontSize="12" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Classes="ghost" Command="{Binding AddMouseClickStepCommand}" Padding="14,7" FontSize="12" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <TextBlock Text="🖱" FontSize="12" VerticalAlignment="Center"/>
+                            <TextBlock Text="Clic" FontSize="12" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Classes="ghost" Command="{Binding AddMouseScrollStepCommand}" Padding="14,7" FontSize="12" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <TextBlock Text="⊙" FontSize="12" VerticalAlignment="Center"/>
+                            <TextBlock Text="Molette" FontSize="12" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Classes="ghost" Command="{Binding AddMouseMoveStepCommand}" Padding="14,7" FontSize="12" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <TextBlock Text="↗" FontSize="12" VerticalAlignment="Center"/>
+                            <TextBlock Text="Déplacer" FontSize="12" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+
+            <!-- ── Col 3 : Divider ── -->
+            <Border Grid.Column="3" Background="#2d2d35"/>
+
+            <!-- ── Col 4 : Activity log ── -->
+            <Grid Grid.Column="4" RowDefinitions="Auto,*,1,Auto">
+
+                <TextBlock Grid.Row="0" Text="ACTIVITÉ" FontSize="11"
+                           Foreground="#6b6b7a" FontWeight="SemiBold" LetterSpacing="1"
+                           Margin="14,10,14,4"/>
+
+                <!-- Empty state -->
+                <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8"
+                            IsVisible="{Binding Log.Count, Converter={x:Static ObjectConverters.IsNull}, FallbackValue=False}">
+                    <TextBlock Text="〜" FontSize="24" Foreground="#3d3d4a" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Aucune activité récente." FontSize="11" Foreground="#3d3d4a"/>
+                </StackPanel>
+
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding Log}" Margin="14,0">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="services:LogEntry">
+                                <StackPanel Margin="0,5" Spacing="2">
+                                    <TextBlock Text="{Binding Message}"
+                                               Foreground="{Binding ForegroundColor}"
+                                               FontSize="11" TextWrapping="Wrap"/>
+                                    <TextBlock Text="{Binding Timestamp, StringFormat='{}{0:HH:mm:ss}'}"
+                                               FontSize="11" Foreground="#6b6b7a"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <Border Grid.Row="2" Background="#2d2d35" Margin="14,0"/>
+
+                <Button Grid.Row="3" Classes="ghost"
+                        Command="{Binding ClearLogCommand}"
+                        Margin="14,8" HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Center" FontSize="12">
+                    Effacer
+                </Button>
+            </Grid>
+
+        </Grid>
+
+        <!-- ── Row 2 : Credits ── -->
+        <Border Grid.Row="2" Background="#0e0e10"
+                BorderBrush="#2d2d35" BorderThickness="0,1,0,0"
+                Padding="16,5">
+            <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right" VerticalAlignment="Center">
+                <TextBlock Text="Copyright © 2026 Kriax. Tous droits réservés."
+                           FontSize="11" Foreground="#6b6b7a"/>
+                <TextBlock Text="•" FontSize="11" Foreground="#6b6b7a"/>
+                <TextBlock Text="{Binding AppVersion, StringFormat='v{0}'}"
+                           FontSize="11" Foreground="#6b6b7a"
+                           FontFamily="Cascadia Code, Consolas, monospace"/>
+            </StackPanel>
+        </Border>
+
+    </Grid>
+</Window>

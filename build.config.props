@@ -1,0 +1,7 @@
+<Project>
+  <PropertyGroup>
+    <AppVersion>1.0.0</AppVersion>
+    <TwitchClientId></TwitchClientId>
+    <EventSubWssUrl>wss://eventsub.wss.twitch.tv/ws</EventSubWssUrl>
+  </PropertyGroup>
+</Project>
