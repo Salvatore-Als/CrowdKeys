@@ -31,7 +31,14 @@ public class TwitchAuthService : IDisposable
         var expiresIn = doc.RootElement.GetProperty("expires_in").GetInt32();
         var interval = doc.RootElement.TryGetProperty("interval", out var iv) ? iv.GetInt32() : 5;
 
-        Process.Start(new ProcessStartInfo(verificationUri) { UseShellExecute = true });
+        try
+        {
+            if (OperatingSystem.IsWindows())
+                Process.Start(new ProcessStartInfo("cmd", $"/c start \"\" \"{verificationUri}\"") { CreateNoWindow = true });
+            else
+                Process.Start(new ProcessStartInfo(verificationUri) { UseShellExecute = true });
+        }
+        catch { /* best effort — user peut ouvrir l'URL manuellement */ }
         onCodeReady(userCode);
 
         using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(expiresIn));
