@@ -4,45 +4,39 @@ namespace CrowdKeys.ScreenEffects.Effects;
 
 public class ShuffleQuadrantsEffect : IScreenEffect
 {
-    private readonly int   _divisions;
-    private readonly int[] _order;
+    private readonly int   _rows;
+    private readonly int   _cols;
+    private readonly int[] _order; // _order[dstIdx] = srcIdx
 
-    public ShuffleQuadrantsEffect(int divisions = 2)
+    // x2 : 1 row × 2 cols, swap left ↔ right
+    public static ShuffleQuadrantsEffect X2() => new(1, 2, [1, 0]);
+
+    // x4 : 2×2 grid, diagonal swap — TL↔BR, TR↔BL
+    public static ShuffleQuadrantsEffect X4() => new(2, 2, [3, 2, 1, 0]);
+
+    private ShuffleQuadrantsEffect(int rows, int cols, int[] order)
     {
-        _divisions = divisions;
-        int count  = divisions * divisions;
-        _order     = Enumerable.Range(0, count).ToArray();
-
-        var rng = new Random();
-        do
-        {
-            for (int i = count - 1; i > 0; i--)
-            {
-                int j = rng.Next(i + 1);
-                (_order[i], _order[j]) = (_order[j], _order[i]);
-            }
-        }
-        while (Enumerable.Range(0, count).All(i => _order[i] == i));
+        _rows  = rows;
+        _cols  = cols;
+        _order = order;
     }
 
     public void Apply(SKCanvas canvas, SKBitmap frame, double elapsedSec, SKRect dest)
     {
-        int   n  = _divisions;
-        float dw = dest.Width  / n;
-        float dh = dest.Height / n;
-        float fw = frame.Width  / (float)n;
-        float fh = frame.Height / (float)n;
+        float dw = dest.Width  / _cols;
+        float dh = dest.Height / _rows;
+        float fw = frame.Width  / (float)_cols;
+        float fh = frame.Height / (float)_rows;
 
-        for (int i = 0; i < n * n; i++)
+        for (int i = 0; i < _rows * _cols; i++)
         {
             int srcIdx = _order[i];
-            int sc = srcIdx % n, sr = srcIdx / n;
-            int dc = i      % n, dr = i      / n;
+            int sc = srcIdx % _cols, sr = srcIdx / _cols;
+            int dc = i      % _cols, dr = i      / _cols;
 
             var src = new SKRectI(
                 (int)(sc * fw),       (int)(sr * fh),
                 (int)((sc + 1) * fw), (int)((sr + 1) * fh));
-            
             var dst = new SKRect(
                 dest.Left + dc * dw,       dest.Top + dr * dh,
                 dest.Left + (dc + 1) * dw, dest.Top + (dr + 1) * dh);

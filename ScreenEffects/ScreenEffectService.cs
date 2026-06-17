@@ -95,26 +95,14 @@ public class ScreenEffectService : IDisposable
         IScreenEffect effect = effectType switch
         {
             ScreenEffectType.Mirror             => new MirrorEffect(),
-            ScreenEffectType.ShuffleQuadrants   => new ShuffleQuadrantsEffect(2),
-            ScreenEffectType.ShuffleQuadrants4  => new ShuffleQuadrantsEffect(4),
-            ScreenEffectType.ShuffleQuadrants8  => new ShuffleQuadrantsEffect(8),
-            ScreenEffectType.ShuffleQuadrants16 => new ShuffleQuadrantsEffect(16),
-            ScreenEffectType.ShuffleQuadrants32 => new ShuffleQuadrantsEffect(32),
-            ScreenEffectType.ShuffleQuadrants64 => new ShuffleQuadrantsEffect(64),
+            ScreenEffectType.ShuffleQuadrants  => ShuffleQuadrantsEffect.X2(),
+            ScreenEffectType.ShuffleQuadrants4 => ShuffleQuadrantsEffect.X4(),
             ScreenEffectType.Blur               => new BlurEffect(),
             ScreenEffectType.Drunk              => new DrunkEffect(),
             _                                   => new MirrorEffect()
         };
 
-        bool isStatic = effectType is
-            ScreenEffectType.ShuffleQuadrants   or ScreenEffectType.ShuffleQuadrants4  or
-            ScreenEffectType.ShuffleQuadrants8  or ScreenEffectType.ShuffleQuadrants16 or
-            ScreenEffectType.ShuffleQuadrants32 or ScreenEffectType.ShuffleQuadrants64;
-
-        if (isStatic)
-            await PlayStaticAsync(effect, durationMs, ct);
-        else
-            await PlayLiveAsync(effect, durationMs, ct);
+        await PlayLiveAsync(effect, durationMs, ct);
     }
 
     // Static: capture once (GDI), render that frozen frame for the duration.

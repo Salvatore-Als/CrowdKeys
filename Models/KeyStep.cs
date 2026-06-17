@@ -173,10 +173,6 @@ public partial class KeyStep : ObservableObject
             ScreenEffectType.Mirror             => "Miroir",
             ScreenEffectType.ShuffleQuadrants   => "Quad x2",
             ScreenEffectType.ShuffleQuadrants4  => "Quad x4",
-            ScreenEffectType.ShuffleQuadrants8  => "Quad x8",
-            ScreenEffectType.ShuffleQuadrants16 => "Quad x16",
-            ScreenEffectType.ShuffleQuadrants32 => "Quad x32",
-            ScreenEffectType.ShuffleQuadrants64 => "Quad x64",
             ScreenEffectType.Blur               => "Blur",
             ScreenEffectType.Drunk              => "Shaking",
             _                                   => EffectType.ToString()

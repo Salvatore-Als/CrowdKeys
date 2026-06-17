@@ -21,6 +21,8 @@ public class EffectCanvas : Avalonia.Controls.Control
     {
         HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
         VerticalAlignment   = Avalonia.Layout.VerticalAlignment.Stretch;
+        Focusable           = false;
+        IsHitTestVisible    = false;
     }
 
     public void StartEffect(IScreenEffect effect, SKBitmap frame)
