@@ -11,20 +11,20 @@ public class ScreenEffectTypeConverter : IValueConverter
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
         value is ScreenEffectType t ? t switch
         {
-            ScreenEffectType.Mirror              => "Dimension Miroir",
-            ScreenEffectType.ShuffleQuadrants    => "Cerveau Fendu",
-            ScreenEffectType.ShuffleQuadrants4   => "Cerveau Explosé",
-            ScreenEffectType.Blur                => "Myopie Sévère",
-            ScreenEffectType.Drunk               => "0.8 g/L",
-            ScreenEffectType.FlipVertical        => "Anti-Gravité",
-            ScreenEffectType.InvertColors        => "Film Négatif",
-            ScreenEffectType.Grayscale           => "Années 50",
-            ScreenEffectType.Pixelate            => "Mode Minecraft",
-            ScreenEffectType.ZoomIn              => "Trop Près",
-            ScreenEffectType.ChromaticAberration => "Écran Mort",
-            ScreenEffectType.Glitch              => "Corruption",
-            ScreenEffectType.Scanlines           => "Vieille Télé",
-            ScreenEffectType.ZoomPulse           => "Palpitations",
+            ScreenEffectType.Mirror              => "Miroir Horizontal",
+            ScreenEffectType.ShuffleQuadrants    => "Split Écran x2",
+            ScreenEffectType.ShuffleQuadrants4   => "Split Écran x4",
+            ScreenEffectType.Blur                => "Flou (Blur)",
+            ScreenEffectType.Drunk               => "Screen Shake",
+            ScreenEffectType.FlipVertical        => "Flip Vertical",
+            ScreenEffectType.InvertColors        => "Inversion Couleurs",
+            ScreenEffectType.Grayscale           => "Noir & Blanc",
+            ScreenEffectType.Pixelate            => "Pixelisé",
+            ScreenEffectType.ZoomIn              => "Zoom x1.6",
+            ScreenEffectType.ChromaticAberration => "Aberration RGB",
+            ScreenEffectType.Glitch              => "Glitch",
+            ScreenEffectType.Scanlines           => "Scanlines CRT",
+            ScreenEffectType.ZoomPulse           => "Zoom Pulsé",
             _                                    => value.ToString()
         } : value?.ToString();
 
