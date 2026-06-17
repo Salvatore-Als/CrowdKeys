@@ -28,7 +28,7 @@ public class GlitchEffect : IScreenEffect
                 dest.Left + shift,  dest.Top + y  * scaleY,
                 dest.Right + shift, dest.Top + y2 * scaleY);
 
-            canvas.DrawBitmap(frame, src, dst);
+            canvas.DrawBitmap(frame, src, dst, paint: null);
             y += bandH;
         }
     }
