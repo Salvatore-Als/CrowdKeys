@@ -1,4 +1,5 @@
 using CrowdKeys.Models;
+using CrowdKeys.ScreenEffects;
 
 namespace CrowdKeys.Services;
 
@@ -13,12 +14,17 @@ public class LogEntry
 
 public class RedemptionService
 {
-    private readonly IKeySimulator _keySimulator;
+    private readonly IKeySimulator       _keySimulator;
+    private readonly ScreenEffectService _screenEffects;
     private List<RedemptionBinding> _bindings = [];
 
     public event EventHandler<LogEntry>? LogAdded;
 
-    public RedemptionService(IKeySimulator keySimulator) => _keySimulator = keySimulator;
+    public RedemptionService(IKeySimulator keySimulator, ScreenEffectService screenEffects)
+    {
+        _keySimulator  = keySimulator;
+        _screenEffects = screenEffects;
+    }
 
     public void UpdateBindings(IEnumerable<RedemptionBinding> bindings) =>
         _bindings = bindings.ToList();
@@ -77,6 +83,10 @@ public class RedemptionService
 
                 case Models.StepType.MouseScroll:
                     _keySimulator.ScrollMouse(step.ScrollDirection, Math.Max(1, (int)step.ScrollAmount));
+                    break;
+
+                case Models.StepType.ScreenEffect:
+                    _screenEffects.Enqueue(step.EffectType, (int)step.EffectDurationMs);
                     break;
 
                 case Models.StepType.MouseMove:

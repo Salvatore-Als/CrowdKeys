@@ -3,6 +3,7 @@ using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CrowdKeys.Models;
+using CrowdKeys.ScreenEffects;
 using CrowdKeys.Services;
 using static CrowdKeys.Models.StepType;
 
@@ -15,9 +16,10 @@ public partial class MainWindowViewModel : ViewModelBase
     private static readonly string GlobalConfigPath = Path.Combine(DataDir, "config.json");
     private string ProfilePath => Path.Combine(DataDir, "profiles", $"{_userId}.json");
 
-    private readonly TwitchAuthService _auth = new();
-    private readonly TwitchEventSubService _eventSub = new();
-    private readonly RedemptionService _redemption;
+    private readonly TwitchAuthService    _auth        = new();
+    private readonly TwitchEventSubService _eventSub   = new();
+    private readonly ScreenEffectService  _screenEffects = new();
+    private readonly RedemptionService    _redemption;
 
     // ── Connection ────────────────────────────────────────────────────────────
 
@@ -62,6 +64,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
     // ── Available keys ────────────────────────────────────────────────────────
 
+    public static readonly IReadOnlyList<ScreenEffectType> AvailableEffectTypes =
+        Enum.GetValues<ScreenEffectType>().ToList();
+
     public static readonly IReadOnlyList<string> AvailableKeys =
     [
         "A","B","C","D","E","F","G","H","I","J","K","L","M",
@@ -88,7 +93,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public MainWindowViewModel(string? accessToken = null, string? refreshToken = null)
     {
-        _redemption = new RedemptionService(new CrossPlatformKeySimulator());
+        _redemption = new RedemptionService(new CrossPlatformKeySimulator(), _screenEffects);
 
         _redemption.LogAdded += (_, entry) =>
             Avalonia.Threading.Dispatcher.UIThread.Post(() => Log.Insert(0, entry));
@@ -141,9 +146,8 @@ public partial class MainWindowViewModel : ViewModelBase
             _refreshToken  = "";
             HasCredentials = false;
             StatusColor    = "#3d3d4a";
-            AddToLog("Session expirée.", "#e53935");
-            Avalonia.Threading.Dispatcher.UIThread.Post(
-                () => LoggedOut?.Invoke(this, EventArgs.Empty));
+            ConnectButtonText = "Se connecter";
+            AddToLog("Session expirée — cliquez sur « Se connecter » pour vous reconnecter.", "#e53935");
         }
         catch (Exception ex)
         {
@@ -549,10 +553,20 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private void AddMouseMoveStep()
     {
-        if (SelectedBinding is null) 
+        if (SelectedBinding is null)
             return;
 
         SelectedBinding.Steps.Add(new KeyStep { Type = StepType.MouseMove });
+        SaveSettings();
+    }
+
+    [RelayCommand]
+    private void AddScreenEffectStep()
+    {
+        if (SelectedBinding is null)
+            return;
+
+        SelectedBinding.Steps.Add(new KeyStep { Type = StepType.ScreenEffect, EffectDurationMs = 5000 });
         SaveSettings();
     }
 

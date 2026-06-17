@@ -2,7 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace CrowdKeys.Models;
 
-public enum StepType { Key, Pause, MouseClick, MouseScroll, MouseMove }
+public enum StepType { Key, Pause, MouseClick, MouseScroll, MouseMove, ScreenEffect }
 public enum MouseButton { Left, Right, Middle }
 public enum ScrollDirection { Up, Down }
 
@@ -14,6 +14,7 @@ public partial class KeyStep : ObservableObject
     [NotifyPropertyChangedFor(nameof(IsMouseClickStep))]
     [NotifyPropertyChangedFor(nameof(IsMouseScrollStep))]
     [NotifyPropertyChangedFor(nameof(IsMouseMoveStep))]
+    [NotifyPropertyChangedFor(nameof(IsScreenEffectStep))]
     [NotifyPropertyChangedFor(nameof(DisplayText))]
     private StepType _type = StepType.Key;
 
@@ -52,16 +53,21 @@ public partial class KeyStep : ObservableObject
 
     [ObservableProperty][NotifyPropertyChangedFor(nameof(DisplayText))] private decimal _scrollAmount = 3;
 
+    // Screen effect fields
+    [ObservableProperty][NotifyPropertyChangedFor(nameof(DisplayText))] private ScreenEffectType _effectType = ScreenEffectType.Mirror;
+    [ObservableProperty][NotifyPropertyChangedFor(nameof(DisplayText))] private decimal _effectDurationMs = 5000;
+
     // Mouse move fields
     [ObservableProperty][NotifyPropertyChangedFor(nameof(DisplayText))] private decimal _moveX = 0;
     [ObservableProperty][NotifyPropertyChangedFor(nameof(DisplayText))] private decimal _moveY = 0;
     [ObservableProperty] private decimal _moveSpeedMs = 0;
 
-    public bool IsKeyStep         => Type == StepType.Key;
-    public bool IsPauseStep       => Type == StepType.Pause;
-    public bool IsMouseClickStep  => Type == StepType.MouseClick;
-    public bool IsMouseScrollStep => Type == StepType.MouseScroll;
-    public bool IsMouseMoveStep   => Type == StepType.MouseMove;
+    public bool IsKeyStep          => Type == StepType.Key;
+    public bool IsPauseStep        => Type == StepType.Pause;
+    public bool IsMouseClickStep   => Type == StepType.MouseClick;
+    public bool IsMouseScrollStep  => Type == StepType.MouseScroll;
+    public bool IsMouseMoveStep    => Type == StepType.MouseMove;
+    public bool IsScreenEffectStep => Type == StepType.ScreenEffect;
 
     public bool IsLeftClick
     {
@@ -159,10 +165,17 @@ public partial class KeyStep : ObservableObject
 
     public string DisplayText => Type switch
     {
-        StepType.Pause       => $"Pause {(int)DurationMs}ms",
-        StepType.MouseClick  => $"Clic {MouseButton} ×{(int)RepeatCount}",
-        StepType.MouseScroll => $"Scroll {ScrollDirection} ×{(int)ScrollAmount}",
-        StepType.MouseMove   => $"Move ({(int)MoveX},{(int)MoveY}px)",
+        StepType.Pause        => $"Pause {(int)DurationMs}ms",
+        StepType.MouseClick   => $"Clic {MouseButton} ×{(int)RepeatCount}",
+        StepType.MouseScroll  => $"Scroll {ScrollDirection} ×{(int)ScrollAmount}",
+        StepType.MouseMove    => $"Move ({(int)MoveX},{(int)MoveY}px)",
+        StepType.ScreenEffect => $"Effet {EffectType switch {
+            ScreenEffectType.Mirror           => "Miroir",
+            ScreenEffectType.ShuffleQuadrants => "Quadrants",
+            ScreenEffectType.Blur             => "Myopie",
+            ScreenEffectType.Drunk            => "Bourré",
+            _                                 => EffectType.ToString()
+        }} • {(int)EffectDurationMs}ms",
         _ => BuildKeyText()
     };
 

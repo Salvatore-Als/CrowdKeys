@@ -1,0 +1,13 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="using:CrowdKeys.Views"
+        x:Class="CrowdKeys.Views.EffectOverlayWindow"
+        Title="CrowdKeys Effect"
+        SystemDecorations="None"
+        WindowState="FullScreen"
+        Topmost="True"
+        ShowInTaskbar="False"
+        CanResize="False"
+        Background="Black">
+    <local:EffectCanvas x:Name="EffectView"/>
+</Window>

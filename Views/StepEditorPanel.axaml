@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:CrowdKeys.ViewModels"
+             xmlns:conv="using:CrowdKeys.ScreenEffects"
              x:Class="CrowdKeys.Views.StepEditorPanel"
              x:DataType="vm:MainWindowViewModel">
 
@@ -59,11 +60,12 @@
                                 <!-- Card header -->
                                 <Grid ColumnDefinitions="*,Auto">
                                     <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="0" VerticalAlignment="Center">
-                                        <TextBlock IsVisible="{Binding IsKeyStep}"         Text="TOUCHE"      FontSize="11" FontWeight="SemiBold" Foreground="#c0c0cc"/>
-                                        <TextBlock IsVisible="{Binding IsPauseStep}"       Text="PAUSE"       FontSize="11" FontWeight="SemiBold" Foreground="#c0c0cc"/>
-                                        <TextBlock IsVisible="{Binding IsMouseClickStep}"  Text="CLIC SOURIS" FontSize="11" FontWeight="SemiBold" Foreground="#c0c0cc"/>
-                                        <TextBlock IsVisible="{Binding IsMouseScrollStep}" Text="MOLETTE"     FontSize="11" FontWeight="SemiBold" Foreground="#c0c0cc"/>
-                                        <TextBlock IsVisible="{Binding IsMouseMoveStep}"   Text="DÉPLACEMENT" FontSize="11" FontWeight="SemiBold" Foreground="#c0c0cc"/>
+                                        <TextBlock IsVisible="{Binding IsKeyStep}"          Text="TOUCHE"       FontSize="11" FontWeight="SemiBold" Foreground="#c0c0cc"/>
+                                        <TextBlock IsVisible="{Binding IsPauseStep}"        Text="PAUSE"        FontSize="11" FontWeight="SemiBold" Foreground="#c0c0cc"/>
+                                        <TextBlock IsVisible="{Binding IsMouseClickStep}"   Text="CLIC SOURIS"  FontSize="11" FontWeight="SemiBold" Foreground="#c0c0cc"/>
+                                        <TextBlock IsVisible="{Binding IsMouseScrollStep}"  Text="MOLETTE"      FontSize="11" FontWeight="SemiBold" Foreground="#c0c0cc"/>
+                                        <TextBlock IsVisible="{Binding IsMouseMoveStep}"    Text="DÉPLACEMENT"  FontSize="11" FontWeight="SemiBold" Foreground="#c0c0cc"/>
+                                        <TextBlock IsVisible="{Binding IsScreenEffectStep}" Text="EFFET ÉCRAN"  FontSize="11" FontWeight="SemiBold" Foreground="#9147ff"/>
                                     </StackPanel>
                                     <Button Grid.Column="1" Classes="danger"
                                             VerticalAlignment="Center"
@@ -164,6 +166,25 @@
                                     </StackPanel>
                                 </StackPanel>
 
+                                <!-- SCREEN EFFECT step body -->
+                                <StackPanel IsVisible="{Binding IsScreenEffectStep}" Spacing="8">
+                                    <TextBlock Text="EFFET" FontSize="11" Foreground="#6b6b7a" FontWeight="SemiBold"/>
+                                    <ComboBox SelectedItem="{Binding EffectType}"
+                                              ItemsSource="{x:Static vm:MainWindowViewModel.AvailableEffectTypes}"
+                                              HorizontalAlignment="Stretch">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Converter={x:Static conv:ScreenEffectTypeConverter.Instance}}"/>
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                    <StackPanel Spacing="5">
+                                        <TextBlock Text="DURÉE (MS)" FontSize="11" Foreground="#6b6b7a" FontWeight="SemiBold"/>
+                                        <NumericUpDown Value="{Binding EffectDurationMs}" Minimum="500" Maximum="30000"
+                                                       FormatString="0" Increment="500" ParsingNumberStyle="Integer"/>
+                                    </StackPanel>
+                                </StackPanel>
+
                                 </StackPanel>
                             </Grid>
                         </Border>
@@ -206,6 +227,12 @@
                 <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <TextBlock Text="↗" FontSize="13" VerticalAlignment="Center"/>
                     <TextBlock Text="Déplacer" FontSize="13" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Button>
+            <Button Classes="ghost" Command="{Binding AddScreenEffectStepCommand}" Padding="14,8" FontSize="13" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+                <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock Text="🖥" FontSize="13" VerticalAlignment="Center"/>
+                    <TextBlock Text="Effet écran" FontSize="13" VerticalAlignment="Center"/>
                 </StackPanel>
             </Button>
         </StackPanel>
