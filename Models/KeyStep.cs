@@ -2,7 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace CrowdKeys.Models;
 
-public enum StepType { Key, Pause, MouseClick, MouseScroll, MouseMove }
+public enum StepType { Key, Pause, MouseClick, MouseScroll, MouseMove, ScreenEffect }
 public enum MouseButton { Left, Right, Middle }
 public enum ScrollDirection { Up, Down }
 
@@ -14,6 +14,7 @@ public partial class KeyStep : ObservableObject
     [NotifyPropertyChangedFor(nameof(IsMouseClickStep))]
     [NotifyPropertyChangedFor(nameof(IsMouseScrollStep))]
     [NotifyPropertyChangedFor(nameof(IsMouseMoveStep))]
+    [NotifyPropertyChangedFor(nameof(IsScreenEffectStep))]
     [NotifyPropertyChangedFor(nameof(DisplayText))]
     private StepType _type = StepType.Key;
 
@@ -52,16 +53,29 @@ public partial class KeyStep : ObservableObject
 
     [ObservableProperty][NotifyPropertyChangedFor(nameof(DisplayText))] private decimal _scrollAmount = 3;
 
+    // Screen effect fields
+    [ObservableProperty][NotifyPropertyChangedFor(nameof(DisplayText))] private ScreenEffectType _effectType = ScreenEffectType.Mirror;
+    [ObservableProperty][NotifyPropertyChangedFor(nameof(DisplayText))] private decimal _effectDurationMs = 5000;
+
+    partial void OnEffectDurationMsChanged(decimal value)
+    {
+        if (value < 100)    
+            EffectDurationMs = 100;
+        else if (value > 10_000) 
+            EffectDurationMs = 10_000;
+    }
+
     // Mouse move fields
     [ObservableProperty][NotifyPropertyChangedFor(nameof(DisplayText))] private decimal _moveX = 0;
     [ObservableProperty][NotifyPropertyChangedFor(nameof(DisplayText))] private decimal _moveY = 0;
     [ObservableProperty] private decimal _moveSpeedMs = 0;
 
-    public bool IsKeyStep         => Type == StepType.Key;
-    public bool IsPauseStep       => Type == StepType.Pause;
-    public bool IsMouseClickStep  => Type == StepType.MouseClick;
-    public bool IsMouseScrollStep => Type == StepType.MouseScroll;
-    public bool IsMouseMoveStep   => Type == StepType.MouseMove;
+    public bool IsKeyStep          => Type == StepType.Key;
+    public bool IsPauseStep        => Type == StepType.Pause;
+    public bool IsMouseClickStep   => Type == StepType.MouseClick;
+    public bool IsMouseScrollStep  => Type == StepType.MouseScroll;
+    public bool IsMouseMoveStep    => Type == StepType.MouseMove;
+    public bool IsScreenEffectStep => Type == StepType.ScreenEffect;
 
     public bool IsLeftClick
     {
@@ -159,10 +173,27 @@ public partial class KeyStep : ObservableObject
 
     public string DisplayText => Type switch
     {
-        StepType.Pause       => $"Pause {(int)DurationMs}ms",
-        StepType.MouseClick  => $"Clic {MouseButton} ×{(int)RepeatCount}",
-        StepType.MouseScroll => $"Scroll {ScrollDirection} ×{(int)ScrollAmount}",
-        StepType.MouseMove   => $"Move ({(int)MoveX},{(int)MoveY}px)",
+        StepType.Pause        => $"Pause {(int)DurationMs}ms",
+        StepType.MouseClick   => $"Clic {MouseButton} ×{(int)RepeatCount}",
+        StepType.MouseScroll  => $"Scroll {ScrollDirection} ×{(int)ScrollAmount}",
+        StepType.MouseMove    => $"Move ({(int)MoveX},{(int)MoveY}px)",
+        StepType.ScreenEffect => $"Effet {EffectType switch {
+            ScreenEffectType.Mirror              => "Miroir H",
+            ScreenEffectType.ShuffleQuadrants    => "Split x2",
+            ScreenEffectType.ShuffleQuadrants4   => "Split x4",
+            ScreenEffectType.Blur                => "Flou",
+            ScreenEffectType.Drunk               => "Shake",
+            ScreenEffectType.FlipVertical        => "Flip",
+            ScreenEffectType.InvertColors        => "Invert",
+            ScreenEffectType.Grayscale           => "N&B",
+            ScreenEffectType.Pixelate            => "Pixel",
+            ScreenEffectType.ZoomIn              => "Zoom",
+            ScreenEffectType.ChromaticAberration => "RGB",
+            ScreenEffectType.Glitch              => "Glitch",
+            ScreenEffectType.Scanlines           => "CRT",
+            ScreenEffectType.ZoomPulse           => "Pulse",
+            _                                    => EffectType.ToString()
+        }} • {(int)EffectDurationMs}ms",
         _ => BuildKeyText()
     };
 
