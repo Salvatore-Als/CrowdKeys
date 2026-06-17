@@ -121,7 +121,7 @@ public partial class MainWindowViewModel : ViewModelBase
             _refreshToken  = refreshToken!;
             HasCredentials = true;
             SyncBindings();
-            _ = AutoConnectOnStartupAsync();
+            _ = AutoConnectOnStartupAsync(isNewLogin: true);
         }
         else
         {
@@ -133,7 +133,7 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
-    private async Task AutoConnectOnStartupAsync()
+    private async Task AutoConnectOnStartupAsync(bool isNewLogin = false)
     {
         try
         {
@@ -142,12 +142,22 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         catch (UnauthorizedAccessException)
         {
-            _accessToken   = "";
-            _refreshToken  = "";
-            HasCredentials = false;
-            StatusColor    = "#3d3d4a";
-            ConnectButtonText = "Se connecter";
-            AddToLog("Session expirée — cliquez sur « Se connecter » pour vous reconnecter.", "#e53935");
+            if (isNewLogin)
+            {
+                // Fresh token — 401 is likely a transient Twitch propagation delay, retry
+                StatusColor = "#3d3d4a";
+                AddToLog("Connexion initiale échouée - nouvelle tentative…", "#f0a500");
+                _ = AutoRetryAsync();
+            }
+            else
+            {
+                _accessToken   = "";
+                _refreshToken  = "";
+                HasCredentials = false;
+                StatusColor    = "#3d3d4a";
+                ConnectButtonText = "Se connecter";
+                AddToLog("Session expirée — cliquez sur « Se connecter » pour vous reconnecter.", "#e53935");
+            }
         }
         catch (Exception ex)
         {

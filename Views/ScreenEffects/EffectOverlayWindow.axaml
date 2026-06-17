@@ -3,10 +3,11 @@
         xmlns:local="using:CrowdKeys.Views"
         x:Class="CrowdKeys.Views.EffectOverlayWindow"
         Title="CrowdKeys Effect"
-        SystemDecorations="None"
+        WindowDecorations="None"
         WindowState="FullScreen"
         Topmost="True"
         ShowInTaskbar="False"
+        ShowActivated="False"
         CanResize="False"
         Background="Black">
     <local:EffectCanvas x:Name="EffectView"/>

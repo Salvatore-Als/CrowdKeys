@@ -4,45 +4,50 @@ namespace CrowdKeys.ScreenEffects.Effects;
 
 public class ShuffleQuadrantsEffect : IScreenEffect
 {
+    private readonly int   _divisions;
     private readonly int[] _order;
 
-    public ShuffleQuadrantsEffect()
+    public ShuffleQuadrantsEffect(int divisions = 2)
     {
-        _order = [0, 1, 2, 3];
+        _divisions = divisions;
+        int count  = divisions * divisions;
+        _order     = Enumerable.Range(0, count).ToArray();
+
         var rng = new Random();
         do
         {
-            for (int i = _order.Length - 1; i > 0; i--)
+            for (int i = count - 1; i > 0; i--)
             {
                 int j = rng.Next(i + 1);
                 (_order[i], _order[j]) = (_order[j], _order[i]);
             }
         }
-        while (_order[0] == 0 && _order[1] == 1 && _order[2] == 2 && _order[3] == 3);
+        while (Enumerable.Range(0, count).All(i => _order[i] == i));
     }
 
     public void Apply(SKCanvas canvas, SKBitmap frame, double elapsedSec, SKRect dest)
     {
-        float dw = dest.Width / 2f, dh = dest.Height / 2f;
-        float fw = frame.Width / 2f, fh = frame.Height / 2f;
+        int   n  = _divisions;
+        float dw = dest.Width  / n;
+        float dh = dest.Height / n;
+        float fw = frame.Width  / (float)n;
+        float fh = frame.Height / (float)n;
 
-        SKRectI[] src =
-        [
-            new(0,         0,          (int)fw, (int)fh),
-            new((int)fw,   0,          frame.Width, (int)fh),
-            new(0,         (int)fh,    (int)fw, frame.Height),
-            new((int)fw,   (int)fh,    frame.Width, frame.Height),
-        ];
+        for (int i = 0; i < n * n; i++)
+        {
+            int srcIdx = _order[i];
+            int sc = srcIdx % n, sr = srcIdx / n;
+            int dc = i      % n, dr = i      / n;
 
-        SKRect[] dst =
-        [
-            new(dest.Left,      dest.Top,      dest.Left + dw, dest.Top + dh),
-            new(dest.Left + dw, dest.Top,      dest.Right,     dest.Top + dh),
-            new(dest.Left,      dest.Top + dh, dest.Left + dw, dest.Bottom),
-            new(dest.Left + dw, dest.Top + dh, dest.Right,     dest.Bottom),
-        ];
+            var src = new SKRectI(
+                (int)(sc * fw),       (int)(sr * fh),
+                (int)((sc + 1) * fw), (int)((sr + 1) * fh));
+            
+            var dst = new SKRect(
+                dest.Left + dc * dw,       dest.Top + dr * dh,
+                dest.Left + (dc + 1) * dw, dest.Top + (dr + 1) * dh);
 
-        for (int i = 0; i < 4; i++)
-            canvas.DrawBitmap(frame, src[_order[i]], dst[i]);
+            canvas.DrawBitmap(frame, src, dst);
+        }
     }
 }

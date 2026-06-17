@@ -71,8 +71,12 @@ public class ScreenEffectService : IDisposable
         }
     }
 
+    private const int MaxEffectDurationMs = 10_000;
+
     private async Task PlayOneAsync(ScreenEffectType effectType, int durationMs, CancellationToken ct)
     {
+        durationMs = Math.Min(durationMs, MaxEffectDurationMs);
+
         await Dispatcher.UIThread.InvokeAsync(() => _overlay?.Hide(), DispatcherPriority.Render);
         await Task.Delay(80, ct);
 
@@ -82,11 +86,16 @@ public class ScreenEffectService : IDisposable
 
         IScreenEffect effect = effectType switch
         {
-            ScreenEffectType.Mirror           => new MirrorEffect(),
-            ScreenEffectType.ShuffleQuadrants => new ShuffleQuadrantsEffect(),
-            ScreenEffectType.Blur             => new BlurEffect(),
-            ScreenEffectType.Drunk            => new DrunkEffect(),
-            _                                 => new MirrorEffect()
+            ScreenEffectType.Mirror            => new MirrorEffect(),
+            ScreenEffectType.ShuffleQuadrants  => new ShuffleQuadrantsEffect(2),
+            ScreenEffectType.ShuffleQuadrants4 => new ShuffleQuadrantsEffect(4),
+            ScreenEffectType.ShuffleQuadrants8 => new ShuffleQuadrantsEffect(8),
+            ScreenEffectType.ShuffleQuadrants16 => new ShuffleQuadrantsEffect(16),
+            ScreenEffectType.ShuffleQuadrants32 => new ShuffleQuadrantsEffect(32),
+            ScreenEffectType.ShuffleQuadrants64 => new ShuffleQuadrantsEffect(64),
+            ScreenEffectType.Blur              => new BlurEffect(),
+            ScreenEffectType.Drunk             => new DrunkEffect(),
+            _                                  => new MirrorEffect()
         };
 
         await Dispatcher.UIThread.InvokeAsync(() =>
@@ -107,6 +116,9 @@ public class ScreenEffectService : IDisposable
                 _overlay?.StopEffect();
                 _overlay?.Hide();
             }, DispatcherPriority.Render);
+
+            // Wait for any in-flight render ops to flush before freeing the SKBitmap.
+            await Task.Delay(100, CancellationToken.None);
             frame.Dispose();
         }
     }
@@ -114,7 +126,9 @@ public class ScreenEffectService : IDisposable
     public void Dispose()
     {
         _disposeCts.Cancel();
-        lock (_queue) _queue.Clear();
+        lock (_queue)
+            _queue.Clear();
+
         _capture.Dispose();
         Dispatcher.UIThread.Post(() => _overlay?.Close());
     }

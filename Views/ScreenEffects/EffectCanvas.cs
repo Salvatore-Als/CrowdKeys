@@ -39,17 +39,20 @@ public class EffectCanvas : Avalonia.Controls.Control
         _timer?.Stop();
         _timer  = null;
         _effect = null;
+        _frame  = null;
         InvalidateVisual();
     }
 
     public override void Render(DrawingContext context)
     {
-        if (_effect is null || _frame is null)
+        var effect = _effect;
+        var frame  = _frame;
+        if (effect is null || frame is null)
             return;
 
         var elapsed = _sw.Elapsed.TotalSeconds;
         var bounds  = new Rect(0, 0, Bounds.Width, Bounds.Height);
-        context.Custom(new EffectRenderOp(_effect, _frame, elapsed, bounds));
+        context.Custom(new EffectRenderOp(effect, frame, elapsed, bounds));
     }
 }
 
