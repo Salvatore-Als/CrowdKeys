@@ -11,10 +11,11 @@ namespace CrowdKeys.Views;
 
 public class EffectCanvas : Avalonia.Controls.Control
 {
-    private IScreenEffect?   _effect;
-    private SKBitmap?        _frame;
+    private IScreenEffect?    _effect;
+    private SKBitmap?         _frame;
+    private Func<SKBitmap?>?  _frameProvider;
     private readonly Stopwatch _sw = new();
-    private DispatcherTimer? _timer;
+    private DispatcherTimer?  _timer;
 
     public EffectCanvas()
     {
@@ -24,8 +25,22 @@ public class EffectCanvas : Avalonia.Controls.Control
 
     public void StartEffect(IScreenEffect effect, SKBitmap frame)
     {
-        _effect = effect;
-        _frame  = frame;
+        _effect        = effect;
+        _frame         = frame;
+        _frameProvider = null;
+        _sw.Restart();
+
+        _timer?.Stop();
+        _timer = new DispatcherTimer(TimeSpan.FromMilliseconds(16), DispatcherPriority.Render,
+            (_, _) => InvalidateVisual());
+        _timer.Start();
+    }
+
+    public void StartEffectLive(IScreenEffect effect, Func<SKBitmap?> frameProvider)
+    {
+        _effect        = effect;
+        _frame         = null;
+        _frameProvider = frameProvider;
         _sw.Restart();
 
         _timer?.Stop();
@@ -37,16 +52,17 @@ public class EffectCanvas : Avalonia.Controls.Control
     public void StopEffect()
     {
         _timer?.Stop();
-        _timer  = null;
-        _effect = null;
-        _frame  = null;
+        _timer         = null;
+        _effect        = null;
+        _frame         = null;
+        _frameProvider = null;
         InvalidateVisual();
     }
 
     public override void Render(DrawingContext context)
     {
         var effect = _effect;
-        var frame  = _frame;
+        var frame  = _frameProvider?.Invoke() ?? _frame;
         if (effect is null || frame is null)
             return;
 

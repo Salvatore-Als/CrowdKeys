@@ -6,6 +6,8 @@ namespace CrowdKeys.ScreenEffects;
 public class WindowsGdiCapture : IScreenCapture
 {
     public bool IsSupported => true;
+    public (int width, int height) ScreenSize =>
+        (GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN));
 
     [DllImport("user32.dll")] static extern IntPtr GetDesktopWindow();
     [DllImport("user32.dll")] static extern IntPtr GetDC(IntPtr hWnd);
@@ -19,10 +21,10 @@ public class WindowsGdiCapture : IScreenCapture
     [DllImport("gdi32.dll")]  static extern int    GetDIBits(IntPtr hDC, IntPtr hBmp, int start, int lines, byte[] bits, ref BITMAPINFO bmi, uint usage);
     [DllImport("user32.dll")] static extern int    GetSystemMetrics(int idx);
 
-    const uint SRCCOPY       = 0xCC0020;
+    const uint SRCCOPY        = 0xCC0020;
     const uint DIB_RGB_COLORS = 0;
-    const int  SM_CXSCREEN   = 0;
-    const int  SM_CYSCREEN   = 1;
+    const int  SM_CXSCREEN    = 0;
+    const int  SM_CYSCREEN    = 1;
 
     [StructLayout(LayoutKind.Sequential)]
     struct BITMAPINFOHEADER
@@ -42,10 +44,23 @@ public class WindowsGdiCapture : IScreenCapture
         public uint[] bmiColors;
     }
 
+    // Reusable pixel buffer — avoids per-frame allocation in CaptureInto.
+    private byte[]? _pixelBuf;
+
     public SKBitmap? Capture()
     {
         int w = GetSystemMetrics(SM_CXSCREEN);
         int h = GetSystemMetrics(SM_CYSCREEN);
+
+        var bmp = new SKBitmap(w, h, SKColorType.Bgra8888, SKAlphaType.Opaque);
+        CaptureInto(bmp);
+        return bmp;
+    }
+
+    public void CaptureInto(SKBitmap target)
+    {
+        int w = target.Width;
+        int h = target.Height;
 
         var desktop = GetDesktopWindow();
         var srcDC   = GetDC(desktop);
@@ -70,13 +85,12 @@ public class WindowsGdiCapture : IScreenCapture
                 bmiColors = new uint[1]
             };
 
-            var pixels = new byte[w * h * 4];
-            GetDIBits(memDC, hBmp, 0, h, pixels, ref bmi, DIB_RGB_COLORS);
+            int needed = w * h * 4;
+            if (_pixelBuf is null || _pixelBuf.Length < needed)
+                _pixelBuf = new byte[needed];
 
-            var bmp    = new SKBitmap(w, h, SKColorType.Bgra8888, SKAlphaType.Opaque);
-            var handle = bmp.GetPixels();
-            Marshal.Copy(pixels, 0, handle, pixels.Length);
-            return bmp;
+            GetDIBits(memDC, hBmp, 0, h, _pixelBuf, ref bmi, DIB_RGB_COLORS);
+            Marshal.Copy(_pixelBuf, 0, target.GetPixels(), needed);
         }
         finally
         {

@@ -36,6 +36,9 @@ public partial class EffectOverlayWindow : Window
     public void StartEffect(IScreenEffect effect, SKBitmap frame) =>
         EffectView.StartEffect(effect, frame);
 
+    public void StartEffectLive(IScreenEffect effect, Func<SKBitmap?> frameProvider) =>
+        EffectView.StartEffectLive(effect, frameProvider);
+
     public void StopEffect() =>
         EffectView.StopEffect();
 }
