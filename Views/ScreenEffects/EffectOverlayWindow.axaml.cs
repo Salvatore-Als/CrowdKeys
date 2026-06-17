@@ -11,11 +11,11 @@ public partial class EffectOverlayWindow : Window
     [DllImport("user32.dll")] private static extern int  SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
     [DllImport("user32.dll")] private static extern bool SetWindowDisplayAffinity(IntPtr hWnd, uint dwAffinity);
 
-    private const int  GWL_EXSTYLE             = -20;
-    private const int  WS_EX_LAYERED           = 0x00080000;
-    private const int  WS_EX_TRANSPARENT       = 0x00000020;
-    private const int  WS_EX_NOACTIVATE        = 0x08000000;
-    private const uint WDA_EXCLUDEFROMCAPTURE  = 0x00000011;
+    private const int  GWL_EXSTYLE            = -20;
+    private const int  WS_EX_LAYERED          = 0x00080000;
+    private const int  WS_EX_TRANSPARENT      = 0x00000020;
+    private const int  WS_EX_NOACTIVATE       = 0x08000000;
+    private const uint WDA_EXCLUDEFROMCAPTURE = 0x00000011;
 
     public EffectOverlayWindow()
     {
@@ -37,8 +37,8 @@ public partial class EffectOverlayWindow : Window
         SetWindowLong(hwnd, GWL_EXSTYLE,
             exStyle | WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_NOACTIVATE);
 
-        // Exclude this window from GDI/DX screen captures so the live
-        // capture loop doesn't capture the overlay itself (feedback loop).
+        // Exclude from DXGI Desktop Duplication captures — DXGI shows content
+        // behind this window instead, so the live capture loop sees the game only.
         SetWindowDisplayAffinity(hwnd, WDA_EXCLUDEFROMCAPTURE);
     }
 

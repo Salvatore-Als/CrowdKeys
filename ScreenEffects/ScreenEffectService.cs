@@ -16,11 +16,21 @@ public class ScreenEffectService : IDisposable
     private readonly CancellationTokenSource _disposeCts = new();
     private bool _processing;
 
+    private readonly IScreenCapture _staticCapture; // GDI — for frozen-frame effects
+
     public ScreenEffectService()
     {
-        _capture = OperatingSystem.IsWindows()
-            ? new WindowsGdiCapture()
-            : new NoOpScreenCapture();
+        if (OperatingSystem.IsWindows())
+        {
+            var dxgi = new WindowsDxgiCapture();
+            _capture       = dxgi.IsSupported ? dxgi : new WindowsGdiCapture();
+            _staticCapture = new WindowsGdiCapture();
+        }
+        else
+        {
+            _capture       = new NoOpScreenCapture();
+            _staticCapture = new NoOpScreenCapture();
+        }
     }
 
     public void Enqueue(ScreenEffectType effectType, int durationMs)
@@ -82,24 +92,6 @@ public class ScreenEffectService : IDisposable
         await Dispatcher.UIThread.InvokeAsync(() => _overlay?.Hide(), DispatcherPriority.Render);
         await Task.Delay(80, ct);
 
-        var (w, h) = _capture.ScreenSize;
-        if (w == 0 || h == 0)
-            return;
-
-        // Double-buffer: capture loop writes to one bitmap, render reads from the other.
-        var buffers = new[]
-        {
-            new SKBitmap(w, h, SKColorType.Bgra8888, SKAlphaType.Opaque),
-            new SKBitmap(w, h, SKColorType.Bgra8888, SKAlphaType.Opaque),
-        };
-
-        // Fill both buffers before starting so the first render has valid data.
-        _capture.CaptureInto(buffers[0]);
-        _capture.CaptureInto(buffers[1]);
-
-        int readIdx  = 0; // index of the buffer safe to read from
-        int writeIdx = 1;
-
         IScreenEffect effect = effectType switch
         {
             ScreenEffectType.Mirror             => new MirrorEffect(),
@@ -114,9 +106,69 @@ public class ScreenEffectService : IDisposable
             _                                   => new MirrorEffect()
         };
 
+        bool isStatic = effectType is
+            ScreenEffectType.ShuffleQuadrants   or ScreenEffectType.ShuffleQuadrants4  or
+            ScreenEffectType.ShuffleQuadrants8  or ScreenEffectType.ShuffleQuadrants16 or
+            ScreenEffectType.ShuffleQuadrants32 or ScreenEffectType.ShuffleQuadrants64;
+
+        if (isStatic)
+            await PlayStaticAsync(effect, durationMs, ct);
+        else
+            await PlayLiveAsync(effect, durationMs, ct);
+    }
+
+    // Static: capture once (GDI), render that frozen frame for the duration.
+    private async Task PlayStaticAsync(IScreenEffect effect, int durationMs, CancellationToken ct)
+    {
+        var frame = _staticCapture.Capture();
+        if (frame is null)
+            return;
+
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            _overlay ??= new EffectOverlayWindow();
+            _overlay.StartEffect(effect, frame);
+            _overlay.Show();
+        }, DispatcherPriority.Render);
+
+        try
+        {
+            await Task.Delay(durationMs, ct);
+        }
+        finally
+        {
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                _overlay?.StopEffect();
+                _overlay?.Hide();
+            }, DispatcherPriority.Render);
+
+            await Task.Delay(100, CancellationToken.None);
+            frame.Dispose();
+        }
+    }
+
+    // Live: double-buffer capture loop at ~30fps, effect renders the latest frame.
+    private async Task PlayLiveAsync(IScreenEffect effect, int durationMs, CancellationToken ct)
+    {
+        var (w, h) = _capture.ScreenSize;
+        if (w == 0 || h == 0)
+            return;
+
+        var buffers = new[]
+        {
+            new SKBitmap(w, h, SKColorType.Bgra8888, SKAlphaType.Opaque),
+            new SKBitmap(w, h, SKColorType.Bgra8888, SKAlphaType.Opaque),
+        };
+
+        _capture.CaptureInto(buffers[0]);
+        _capture.CaptureInto(buffers[1]);
+
+        int readIdx  = 0;
+        int writeIdx = 1;
+
         using var captureCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
 
-        // Background capture loop — writes to writeIdx, then atomically promotes to readIdx.
         _ = Task.Run(async () =>
         {
             while (!captureCts.Token.IsCancellationRequested)
@@ -126,7 +178,7 @@ public class ScreenEffectService : IDisposable
                     await Task.Delay(CaptureIntervalMs, captureCts.Token);
                     _capture.CaptureInto(buffers[writeIdx]);
                     Volatile.Write(ref readIdx, writeIdx);
-                    writeIdx ^= 1; // flip: old read buffer becomes next write target
+                    writeIdx ^= 1;
                 }
                 catch (OperationCanceledException) { return; }
             }
@@ -153,7 +205,6 @@ public class ScreenEffectService : IDisposable
                 _overlay?.Hide();
             }, DispatcherPriority.Render);
 
-            // Wait for any in-flight render ops to drain before freeing the bitmaps.
             await Task.Delay(100, CancellationToken.None);
             buffers[0].Dispose();
             buffers[1].Dispose();
@@ -165,6 +216,7 @@ public class ScreenEffectService : IDisposable
         _disposeCts.Cancel();
         lock (_queue) _queue.Clear();
         _capture.Dispose();
+        _staticCapture.Dispose();
         Dispatcher.UIThread.Post(() => _overlay?.Close());
     }
 }
