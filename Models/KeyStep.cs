@@ -178,12 +178,22 @@ public partial class KeyStep : ObservableObject
         StepType.MouseScroll  => $"Scroll {ScrollDirection} ×{(int)ScrollAmount}",
         StepType.MouseMove    => $"Move ({(int)MoveX},{(int)MoveY}px)",
         StepType.ScreenEffect => $"Effet {EffectType switch {
-            ScreenEffectType.Mirror             => "Miroir",
-            ScreenEffectType.ShuffleQuadrants   => "Quad x2",
-            ScreenEffectType.ShuffleQuadrants4  => "Quad x4",
-            ScreenEffectType.Blur               => "Blur",
-            ScreenEffectType.Drunk              => "Shaking",
-            _                                   => EffectType.ToString()
+            ScreenEffectType.Mirror              => "Miroir",
+            ScreenEffectType.ShuffleQuadrants    => "Fendu",
+            ScreenEffectType.ShuffleQuadrants4   => "Explosé",
+            ScreenEffectType.Blur                => "Myopie",
+            ScreenEffectType.Drunk               => "0.8g/L",
+            ScreenEffectType.FlipVertical        => "Anti-G",
+            ScreenEffectType.InvertColors        => "Négatif",
+            ScreenEffectType.Grayscale           => "50s",
+            ScreenEffectType.Pixelate            => "Minecraft",
+            ScreenEffectType.ZoomIn              => "Trop Près",
+            ScreenEffectType.ChromaticAberration => "LCD Mort",
+            ScreenEffectType.Glitch              => "Corrupt",
+            ScreenEffectType.Vignette            => "Tunnel",
+            ScreenEffectType.Scanlines           => "VHS",
+            ScreenEffectType.ZoomPulse           => "Cardio",
+            _                                    => EffectType.ToString()
         }} • {(int)EffectDurationMs}ms",
         _ => BuildKeyText()
     };

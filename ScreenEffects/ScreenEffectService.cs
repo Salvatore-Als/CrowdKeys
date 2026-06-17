@@ -97,8 +97,18 @@ public class ScreenEffectService : IDisposable
             ScreenEffectType.Mirror             => new MirrorEffect(),
             ScreenEffectType.ShuffleQuadrants  => ShuffleQuadrantsEffect.X2(),
             ScreenEffectType.ShuffleQuadrants4 => ShuffleQuadrantsEffect.X4(),
-            ScreenEffectType.Blur               => new BlurEffect(),
-            ScreenEffectType.Drunk              => new DrunkEffect(),
+            ScreenEffectType.Blur                => new BlurEffect(),
+            ScreenEffectType.Drunk               => new DrunkEffect(),
+            ScreenEffectType.FlipVertical        => new FlipVerticalEffect(),
+            ScreenEffectType.InvertColors        => new InvertColorsEffect(),
+            ScreenEffectType.Grayscale           => new GrayscaleEffect(),
+            ScreenEffectType.Pixelate            => new PixelateEffect(),
+            ScreenEffectType.ZoomIn              => new ZoomInEffect(),
+            ScreenEffectType.ChromaticAberration => new ChromaticAberrationEffect(),
+            ScreenEffectType.Glitch              => new GlitchEffect(),
+            ScreenEffectType.Vignette            => new VignetteEffect(),
+            ScreenEffectType.Scanlines           => new ScanlinesEffect(),
+            ScreenEffectType.ZoomPulse           => new ZoomPulseEffect(),
             _                                   => new MirrorEffect()
         };
 
