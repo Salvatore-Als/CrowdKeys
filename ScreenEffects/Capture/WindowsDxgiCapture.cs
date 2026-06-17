@@ -234,8 +234,8 @@ public class WindowsDxgiCapture : IScreenCapture
         Release(ref _stagingTex);
         Release(ref _context);
         Release(ref _device);
-        _acquire = _releaseFrame = null;
-        _copy = null; _map = null; _unmap = null;
+        _acquire = null; _releaseFrame = null;
+        _copy    = null; _map          = null; _unmap = null;
         try { Init(); } catch { }
     }
 
