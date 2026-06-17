@@ -140,8 +140,9 @@ public class ScreenEffectService : IDisposable
                 _overlay?.Hide();
             }, DispatcherPriority.Render);
 
-            await Task.Delay(100, CancellationToken.None);
-            frame.Dispose();
+            // No explicit Dispose — SKBitmap finalizer frees native memory safely.
+            // Disposing while Skia render ops may still reference the bitmap causes AccessViolationException.
+            GC.KeepAlive(frame);
         }
     }
 
@@ -202,9 +203,10 @@ public class ScreenEffectService : IDisposable
                 _overlay?.Hide();
             }, DispatcherPriority.Render);
 
-            await Task.Delay(100, CancellationToken.None);
-            buffers[0].Dispose();
-            buffers[1].Dispose();
+            // No explicit Dispose — let GC/finalizer free native memory.
+            // Disposing while Skia render ops reference the bitmaps causes AccessViolationException.
+            GC.KeepAlive(buffers[0]);
+            GC.KeepAlive(buffers[1]);
         }
     }
 
