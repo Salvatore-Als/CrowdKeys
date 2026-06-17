@@ -2,19 +2,23 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:CrowdKeys.ViewModels"
              xmlns:services="using:CrowdKeys.Services"
+             xmlns:loc="using:CrowdKeys.Localization"
              x:Class="CrowdKeys.Views.ActivityLogPanel"
-             x:DataType="vm:MainWindowViewModel">
+             x:DataType="vm:MainWindowViewModel"
+             x:CompileBindings="False">
 
     <Grid RowDefinitions="Auto,*,1,Auto">
 
-        <TextBlock Grid.Row="0" Text="ACTIVITÉ" FontSize="11"
-                   Foreground="#6b6b7a" FontWeight="SemiBold" LetterSpacing="1.5"
+        <TextBlock Grid.Row="0"
+                   Text="{Binding Loc[Log_Title]}"
+                   FontSize="11" Foreground="#6b6b7a" FontWeight="SemiBold" LetterSpacing="1.5"
                    Margin="14,12,14,6"/>
 
         <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10"
                     IsVisible="{Binding Log.Count, Converter={x:Static ObjectConverters.IsNull}, FallbackValue=False}">
             <TextBlock Text="〜" FontSize="28" Foreground="#3d3d4a" HorizontalAlignment="Center"/>
-            <TextBlock Text="Aucune activité récente." FontSize="12" Foreground="#4a4a5a"/>
+            <TextBlock Text="{Binding Loc[Log_Empty]}"
+                       FontSize="12" Foreground="#4a4a5a"/>
         </StackPanel>
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
@@ -37,10 +41,9 @@
 
         <Button Grid.Row="3" Classes="ghost"
                 Command="{Binding ClearLogCommand}"
+                Content="{Binding Loc[Log_Clear]}"
                 Margin="14,10" HorizontalAlignment="Stretch"
-                HorizontalContentAlignment="Center" FontSize="13">
-            Effacer
-        </Button>
+                HorizontalContentAlignment="Center" FontSize="13"/>
 
     </Grid>
 </UserControl>

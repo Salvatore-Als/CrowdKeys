@@ -17,6 +17,8 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
+            desktop.ShutdownMode = Avalonia.Controls.ShutdownMode.OnExplicitShutdown;
+
             var config = LoadGlobalConfig();
 
             if (!string.IsNullOrEmpty(config.LastUserId))
@@ -58,6 +60,17 @@ public partial class App : Application
                 OpenLoginWindow(desktop);
                 win.Close();
             });
+
+        EventHandler<Avalonia.Controls.WindowClosingEventArgs>? closingHandler = null;
+        closingHandler = (_, _) =>
+        {
+            if (desktop.MainWindow == win)
+            {
+                win.Closing -= closingHandler;
+                desktop.Shutdown();
+            }
+        };
+        win.Closing += closingHandler;
 
         desktop.MainWindow = win;
         win.Show();

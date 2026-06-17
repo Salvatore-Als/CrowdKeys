@@ -2,8 +2,10 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:CrowdKeys.ViewModels"
         xmlns:views="using:CrowdKeys.Views"
+        xmlns:loc="using:CrowdKeys.Localization"
         x:Class="CrowdKeys.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
+        x:CompileBindings="False"
         Title="CrowdKeys"
         Width="1080" Height="640"
         MinWidth="900" MinHeight="500"
@@ -312,12 +314,18 @@
                 </Border>
                 <Border CornerRadius="100" Padding="9,4" Background="#2a1e08"
                         IsVisible="{Binding IsPaused}">
-                    <TextBlock Text="{Binding LoginName, StringFormat='@{0} · En pause'}"
-                               FontSize="11" FontWeight="SemiBold" Foreground="#f0a500"/>
+                    <StackPanel Orientation="Horizontal" Spacing="3">
+                        <TextBlock Text="{Binding LoginName, StringFormat='@{0}'}"
+                                   FontSize="11" FontWeight="SemiBold" Foreground="#f0a500"/>
+                        <TextBlock Text="·" FontSize="11" Foreground="#f0a500"/>
+                        <TextBlock Text="{Binding Loc[Status_Paused]}"
+                                   FontSize="11" FontWeight="SemiBold" Foreground="#f0a500"/>
+                    </StackPanel>
                 </Border>
                 <Border CornerRadius="100" Padding="9,4" Background="#28282e"
                         IsVisible="{Binding IsDisconnected}">
-                    <TextBlock Text="Déconnecté" FontSize="11" FontWeight="SemiBold" Foreground="#6b6b7a"/>
+                    <TextBlock Text="{Binding Loc[Status_Disconnected]}"
+                               FontSize="11" FontWeight="SemiBold" Foreground="#6b6b7a"/>
                 </Border>
             </Panel>
 
@@ -335,9 +343,8 @@
                         <TextBlock Text="{Binding PauseButtonText}"/>
                     </Button>
                     <Button Command="{Binding DisconnectCommand}"
-                            Classes="ghost" Padding="12,8" FontSize="13">
-                        Déconnecter
-                    </Button>
+                            Classes="ghost" Padding="12,8" FontSize="13"
+                            Content="{Binding Loc[Btn_Disconnect]}"/>
                 </StackPanel>
             </Panel>
 
@@ -353,18 +360,37 @@
             <views:ActivityLogPanel Grid.Column="4"/>
         </Grid>
 
-        <!-- ── Row 2 : Credits ── -->
+        <!-- ── Row 2 : Credits + Language selector ── -->
         <Border Grid.Row="2" Background="#0e0e10"
                 BorderBrush="#2d2d35" BorderThickness="0,1,0,0"
                 Padding="16,5">
-            <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right" VerticalAlignment="Center">
-                <TextBlock Text="Copyright © 2026 Kriax. Tous droits réservés."
-                           FontSize="13" Foreground="#6b6b7a"/>
-                <TextBlock Text="•" FontSize="11" Foreground="#6b6b7a"/>
-                <TextBlock Text="{Binding AppVersion, StringFormat='v{0}'}"
-                           FontSize="13" Foreground="#6b6b7a"
-                           FontFamily="Cascadia Code, Consolas, monospace"/>
-            </StackPanel>
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <!-- Language selector -->
+                <ComboBox Grid.Column="0"
+                          ItemsSource="{x:Static loc:Loc.Languages}"
+                          SelectedItem="{Binding SelectedLanguage}"
+                          FontSize="12"
+                          MinWidth="130"
+                          Background="Transparent"
+                          BorderThickness="0"
+                          Padding="4,2">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Label}" FontSize="12"/>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+
+                <!-- Copyright + version -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding Loc[Copyright]}"
+                               FontSize="13" Foreground="#6b6b7a"/>
+                    <TextBlock Text="•" FontSize="11" Foreground="#6b6b7a"/>
+                    <TextBlock Text="{Binding AppVersion, StringFormat='v{0}'}"
+                               FontSize="13" Foreground="#6b6b7a"
+                               FontFamily="Cascadia Code, Consolas, monospace"/>
+                </StackPanel>
+            </Grid>
         </Border>
 
     </Grid>

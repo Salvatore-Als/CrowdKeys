@@ -2,7 +2,10 @@ using System.Collections.ObjectModel;
 using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CrowdKeys.Localization;
+using LocSingleton = CrowdKeys.Localization.Loc;
 using CrowdKeys.Models;
+using CrowdKeys.ScreenEffects;
 using CrowdKeys.Services;
 using static CrowdKeys.Models.StepType;
 
@@ -15,9 +18,10 @@ public partial class MainWindowViewModel : ViewModelBase
     private static readonly string GlobalConfigPath = Path.Combine(DataDir, "config.json");
     private string ProfilePath => Path.Combine(DataDir, "profiles", $"{_userId}.json");
 
-    private readonly TwitchAuthService _auth = new();
-    private readonly TwitchEventSubService _eventSub = new();
-    private readonly RedemptionService _redemption;
+    private readonly TwitchAuthService    _auth        = new();
+    private readonly TwitchEventSubService _eventSub   = new();
+    private readonly ScreenEffectService  _screenEffects = new();
+    private readonly RedemptionService    _redemption;
 
     // ── Connection ────────────────────────────────────────────────────────────
 
@@ -27,11 +31,32 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private bool   _isPaused;
     [ObservableProperty] private bool   _hasCredentials;
     [ObservableProperty] private string _statusColor        = "#3d3d4a";
-    [ObservableProperty] private string _connectButtonText  = "Se connecter";
     [ObservableProperty] private string _loginName          = "";
 
+    private string _connectButtonKey = "Btn_Connect";
+    public  string ConnectButtonText
+    {
+        get => LocSingleton.Instance[_connectButtonKey];
+        private set { _connectButtonKey = value; OnPropertyChanged(); }
+    }
+
     public bool IsDisconnected  => !IsConnected && !IsPaused;
-    public string PauseButtonText => IsPaused ? "Reprendre" : "Pause";
+    public string PauseButtonText => LocSingleton.Instance[IsPaused ? "Btn_Resume" : "Btn_Pause"];
+
+    // Language selector
+    public LanguageOption SelectedLanguage
+    {
+        get => LocSingleton.Languages.FirstOrDefault(l => l.Code == LocSingleton.Instance.CurrentLang)
+               ?? LocSingleton.Languages[0];
+        set
+        {
+            if (value is null) return;
+            LocSingleton.Instance.SetLanguage(value.Code);
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(ConnectButtonText));
+            OnPropertyChanged(nameof(PauseButtonText));
+        }
+    }
 
     partial void OnIsConnectedChanged(bool value)
     {
@@ -62,6 +87,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
     // ── Available keys ────────────────────────────────────────────────────────
 
+    public static readonly IReadOnlyList<ScreenEffectType> AvailableEffectTypes =
+        Enum.GetValues<ScreenEffectType>().ToList();
+
     public static readonly IReadOnlyList<string> AvailableKeys =
     [
         "A","B","C","D","E","F","G","H","I","J","K","L","M",
@@ -88,7 +116,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public MainWindowViewModel(string? accessToken = null, string? refreshToken = null)
     {
-        _redemption = new RedemptionService(new CrossPlatformKeySimulator());
+        _redemption = new RedemptionService(new CrossPlatformKeySimulator(), _screenEffects);
 
         _redemption.LogAdded += (_, entry) =>
             Avalonia.Threading.Dispatcher.UIThread.Post(() => Log.Insert(0, entry));
@@ -116,7 +144,7 @@ public partial class MainWindowViewModel : ViewModelBase
             _refreshToken  = refreshToken!;
             HasCredentials = true;
             SyncBindings();
-            _ = AutoConnectOnStartupAsync();
+            _ = AutoConnectOnStartupAsync(isNewLogin: true);
         }
         else
         {
@@ -128,7 +156,7 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
-    private async Task AutoConnectOnStartupAsync()
+    private async Task AutoConnectOnStartupAsync(bool isNewLogin = false)
     {
         try
         {
@@ -137,18 +165,27 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         catch (UnauthorizedAccessException)
         {
-            _accessToken   = "";
-            _refreshToken  = "";
-            HasCredentials = false;
-            StatusColor    = "#3d3d4a";
-            AddToLog("Session expirée.", "#e53935");
-            Avalonia.Threading.Dispatcher.UIThread.Post(
-                () => LoggedOut?.Invoke(this, EventArgs.Empty));
+            if (isNewLogin)
+            {
+                // Fresh token — 401 is likely a transient Twitch propagation delay, retry
+                StatusColor = "#3d3d4a";
+                AddToLog(LocSingleton.Instance["Log_ConnectRetry"], "#f0a500");
+                _ = AutoRetryAsync();
+            }
+            else
+            {
+                _accessToken   = "";
+                _refreshToken  = "";
+                HasCredentials = false;
+                StatusColor    = "#3d3d4a";
+                ConnectButtonText = "Btn_Connect";
+                AddToLog(LocSingleton.Instance["Log_SessionExpiredConnect"], "#e53935");
+            }
         }
         catch (Exception ex)
         {
             StatusColor = "#3d3d4a";
-            AddToLog($"Connexion initiale échouée : {ex.Message}", "#e53935");
+            AddToLog(string.Format(LocSingleton.Instance["Log_ConnectFailed"], ex.Message), "#e53935");
             _ = AutoRetryAsync();
         }
     }
@@ -168,7 +205,7 @@ public partial class MainWindowViewModel : ViewModelBase
         try
         {
             StatusColor = "#f0a500";
-            ConnectButtonText = "Connexion…";
+            ConnectButtonText = "Btn_Connecting";
 
             if (string.IsNullOrWhiteSpace(_accessToken))
                 await RunDeviceFlowAsync();
@@ -181,7 +218,7 @@ public partial class MainWindowViewModel : ViewModelBase
             {
                 _accessToken = "";
                 _refreshToken = "";
-                AddToLog("Session expirée - nouvelle authentification requise.", "#f0a500");
+                AddToLog(LocSingleton.Instance["Log_SessionExpiredReauth"], "#f0a500");
 
                 await RunDeviceFlowAsync();
                 await ConnectWithTokenAsync();
@@ -189,12 +226,12 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         catch (OperationCanceledException)
         {
-            AddToLog("Authentification annulée.", "#e53935");
+            AddToLog(LocSingleton.Instance["Log_AuthCancelled"], "#e53935");
             ResetConnectionState();
         }
         catch (Exception ex)
         {
-            AddToLog($"Erreur : {ex.Message}", "#e53935");
+            AddToLog(string.Format(LocSingleton.Instance["Log_Error"], ex.Message), "#e53935");
             ResetConnectionState();
         }
     }
@@ -217,11 +254,11 @@ public partial class MainWindowViewModel : ViewModelBase
         HasCredentials  = false;
         IsConnected     = false;
         StatusColor     = "#3d3d4a";
-        ConnectButtonText = "Se connecter";
+        ConnectButtonText = "Btn_Connect";
 
         DeleteGlobalConfig();
         ClearBindingOrphans();
-        AddToLog("Déconnecté.", "#adadb8");
+        AddToLog(LocSingleton.Instance["Log_Disconnected"], "#adadb8");
         LoggedOut?.Invoke(this, EventArgs.Empty);
     }
 
@@ -238,7 +275,7 @@ public partial class MainWindowViewModel : ViewModelBase
             IsConnected = false;
             StatusColor = "#f0a500";
             ClearBindingOrphans();
-            AddToLog("Listener en pause.", "#f0a500");
+            AddToLog(LocSingleton.Instance["Log_ListenerPaused"], "#f0a500");
             return;
         }
 
@@ -246,12 +283,12 @@ public partial class MainWindowViewModel : ViewModelBase
         try
         {
             StatusColor = "#f0a500";
-            ConnectButtonText = "Connexion…";
+            ConnectButtonText = "Btn_Connecting";
             await ConnectWithTokenAsync();
         }
         catch (Exception ex)
         {
-            AddToLog($"Erreur lors de la reprise : {ex.Message}", "#e53935");
+            AddToLog(string.Format(LocSingleton.Instance["Log_ResumeError"], ex.Message), "#e53935");
         }
     }
 
@@ -295,7 +332,7 @@ public partial class MainWindowViewModel : ViewModelBase
         IsConnected    = true;
         HasCredentials = true;
         StatusColor    = "#00c853";
-        ConnectButtonText = "Se connecter";
+        ConnectButtonText = "Btn_Connect";
 
         SaveSettings();
         SaveGlobalConfig();
@@ -305,17 +342,17 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task RunDeviceFlowAsync(CancellationToken ct = default)
     {
-        ConnectButtonText = "En attente du code…";
-        AddToLog("Démarrage de l'authentification Twitch…", "#adadb8");
+        ConnectButtonText = "Btn_WaitingCode";
+        AddToLog(LocSingleton.Instance["Log_AuthStarted"], "#adadb8");
 
         (_accessToken, _refreshToken) = await _auth.StartDeviceFlowAsync(
             ClientId,
-            userCode => AddToLog($"Entrez ce code sur twitch.tv/activate : {userCode}", "#9147ff"),
+            userCode => AddToLog(string.Format(LocSingleton.Instance["Log_EnterCode"], userCode), "#9147ff"),
             ct);
 
         SaveSettings();
-        AddToLog("Authentification Twitch réussie.", "#00c853");
-        ConnectButtonText = "Connexion…";
+        AddToLog(LocSingleton.Instance["Log_AuthSuccess"], "#00c853");
+        ConnectButtonText = "Btn_Connecting";
     }
 
     private async Task AutoRetryAsync()
@@ -331,7 +368,7 @@ public partial class MainWindowViewModel : ViewModelBase
         for (int attempt = 1; attempt <= maxAttempts; attempt++)
         {
             var delaySecs = (int)Math.Pow(2, attempt);
-            AddToLog($"Reconnexion dans {delaySecs}s… (tentative {attempt}/{maxAttempts})", "#f0a500");
+            AddToLog(string.Format(LocSingleton.Instance["Log_Reconnecting"], delaySecs, attempt, maxAttempts), "#f0a500");
 
             try 
             { 
@@ -348,7 +385,7 @@ public partial class MainWindowViewModel : ViewModelBase
             try
             {
                 StatusColor = "#f0a500";
-                ConnectButtonText = "Reconnexion…";
+                ConnectButtonText = "Btn_Reconnecting";
                 await ConnectWithTokenAsync(ct);
             
                 return;
@@ -363,7 +400,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 _refreshToken = "";
 
                 SaveSettings();
-                AddToLog("Session expirée - cliquez sur Se connecter pour vous reconnecter.", "#e53935");
+                AddToLog(LocSingleton.Instance["Log_SessionExpiredConnect"], "#e53935");
 
                 HasCredentials = false;
                 IsConnected    = false;
@@ -377,11 +414,11 @@ public partial class MainWindowViewModel : ViewModelBase
             {
                 IsConnected = false;
                 StatusColor = "#3d3d4a";
-                AddToLog($"Tentative {attempt} échouée : {ex.Message}", "#e53935");
+                AddToLog(string.Format(LocSingleton.Instance["Log_AttemptFailed"], attempt, ex.Message), "#e53935");
             }
         }
 
-        AddToLog("Reconnexion abandonnée après 5 tentatives.", "#e53935");
+        AddToLog(LocSingleton.Instance["Log_ReconnectAbandoned"], "#e53935");
     }
 
     private void AddToLog(string message, string? color = null) =>
@@ -392,7 +429,7 @@ public partial class MainWindowViewModel : ViewModelBase
         IsConnected       = false;
         IsPaused          = false;
         StatusColor       = "#3d3d4a";
-        ConnectButtonText = "Se connecter";
+        ConnectButtonText = "Btn_Connect";
     }
 
     [RelayCommand]
@@ -434,11 +471,11 @@ public partial class MainWindowViewModel : ViewModelBase
         
             UpdateBindingOrphans();
             UpdateFilteredRewards();
-            AddToLog($"{AvailableRewards.Count} reward(s) chargé(s).", "#adadb8");
+            AddToLog(string.Format(LocSingleton.Instance["Log_RewardsLoaded"], AvailableRewards.Count), "#adadb8");
         }
         catch (Exception ex)
         {
-            AddToLog($"Erreur chargement rewards : {ex.Message}", "#e53935");
+            AddToLog(string.Format(LocSingleton.Instance["Log_RewardsError"], ex.Message), "#e53935");
         }
         finally
         {
@@ -549,10 +586,20 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private void AddMouseMoveStep()
     {
-        if (SelectedBinding is null) 
+        if (SelectedBinding is null)
             return;
 
         SelectedBinding.Steps.Add(new KeyStep { Type = StepType.MouseMove });
+        SaveSettings();
+    }
+
+    [RelayCommand]
+    private void AddScreenEffectStep()
+    {
+        if (SelectedBinding is null)
+            return;
+
+        SelectedBinding.Steps.Add(new KeyStep { Type = StepType.ScreenEffect, EffectDurationMs = 5000 });
         SaveSettings();
     }
 

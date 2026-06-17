@@ -1,8 +1,10 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:CrowdKeys.ViewModels"
+        xmlns:loc="using:CrowdKeys.Localization"
         x:Class="CrowdKeys.Views.LoginWindow"
         x:DataType="vm:LoginWindowViewModel"
+        x:CompileBindings="False"
         Title="CrowdKeys"
         Width="440" Height="460"
         CanResize="False"
@@ -51,7 +53,7 @@
                     <Ellipse Width="16" Height="16" Fill="#9147ff" VerticalAlignment="Center"/>
                     <TextBlock Text="CrowdKeys" FontSize="32" FontWeight="Bold"/>
                 </StackPanel>
-                <TextBlock Text="Connectez votre chaîne Twitch pour commencer."
+                <TextBlock Text="{Binding Loc[Login_Subtitle]}"
                            FontSize="13" Foreground="#6b6b7a"
                            HorizontalAlignment="Center"
                            TextWrapping="Wrap" TextAlignment="Center"/>
@@ -61,7 +63,7 @@
             <Border IsVisible="{Binding HasCode}"
                     Background="#1a1a22" CornerRadius="10" Padding="24,18">
                 <StackPanel Spacing="10" HorizontalAlignment="Center">
-                    <TextBlock Text="Entrez ce code sur twitch.tv/activate"
+                    <TextBlock Text="{Binding Loc[Login_EnterCode]}"
                                FontSize="12" Foreground="#adadb8" HorizontalAlignment="Center"/>
                     <TextBlock Text="{Binding DeviceCode}"
                                FontSize="34" FontWeight="Bold" LetterSpacing="6"
@@ -73,9 +75,8 @@
             <!-- Connect button -->
             <Button Command="{Binding ConnectCommand}"
                     IsEnabled="{Binding !IsConnecting}"
-                    HorizontalAlignment="Stretch">
-                Se connecter avec Twitch
-            </Button>
+                    HorizontalAlignment="Stretch"
+                    Content="{Binding Loc[Login_Button]}"/>
 
             <!-- Status -->
             <TextBlock Text="{Binding StatusText}"
@@ -87,10 +88,25 @@
         </StackPanel>
 
         <!-- Footer -->
-        <TextBlock Grid.Row="1"
-                   Text="Copyright © 2026 Kriax. Tous droits réservés."
-                   FontSize="13" Foreground="#3d3d4a"
-                   HorizontalAlignment="Center" Margin="0,0,0,14"/>
+        <StackPanel Grid.Row="1" Spacing="6" Margin="16,0,16,14" HorizontalAlignment="Center">
+            <ComboBox ItemsSource="{x:Static loc:Loc.Languages}"
+                      SelectedItem="{Binding SelectedLanguage}"
+                      HorizontalAlignment="Center"
+                      FontSize="12"
+                      MinWidth="130"
+                      Background="Transparent"
+                      BorderThickness="0"
+                      Padding="4,2">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Label}" FontSize="12"/>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+            <TextBlock Text="{Binding Loc[Copyright]}"
+                       FontSize="11" Foreground="#3d3d4a"
+                       HorizontalAlignment="Center"/>
+        </StackPanel>
 
     </Grid>
 </Window>
