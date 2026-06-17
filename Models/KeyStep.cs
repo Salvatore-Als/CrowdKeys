@@ -55,7 +55,14 @@ public partial class KeyStep : ObservableObject
 
     // Screen effect fields
     [ObservableProperty][NotifyPropertyChangedFor(nameof(DisplayText))] private ScreenEffectType _effectType = ScreenEffectType.Mirror;
-    [ObservableProperty][NotifyPropertyChangedFor(nameof(DisplayText))] private decimal _effectDurationMs = 5000;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(DisplayText))]
+    [NotifyPropertyChangedFor(nameof(EffectDurationError))]
+    private decimal _effectDurationMs = 5000;
+
+    public string? EffectDurationError => _effectDurationMs < 100 || _effectDurationMs > 10_000
+        ? "Durée invalide, minimum 100ms, maximum 10 000ms"
+        : null;
 
     // Mouse move fields
     [ObservableProperty][NotifyPropertyChangedFor(nameof(DisplayText))] private decimal _moveX = 0;

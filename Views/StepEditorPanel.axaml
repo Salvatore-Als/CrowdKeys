@@ -180,8 +180,11 @@
                                     </ComboBox>
                                     <StackPanel Spacing="5">
                                         <TextBlock Text="DURÉE (MS)" FontSize="11" Foreground="#6b6b7a" FontWeight="SemiBold"/>
-                                        <NumericUpDown Value="{Binding EffectDurationMs}" Minimum="500" Maximum="30000"
+                                        <NumericUpDown Value="{Binding EffectDurationMs}" Minimum="100" Maximum="10000"
                                                        FormatString="0" Increment="500" ParsingNumberStyle="Integer"/>
+                                        <TextBlock Text="{Binding EffectDurationError}"
+                                                   IsVisible="{Binding EffectDurationError, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                                   Foreground="#e53935" FontSize="11" TextWrapping="Wrap"/>
                                     </StackPanel>
                                 </StackPanel>
 

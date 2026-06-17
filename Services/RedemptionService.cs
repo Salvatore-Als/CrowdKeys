@@ -86,7 +86,13 @@ public class RedemptionService
                     break;
 
                 case Models.StepType.ScreenEffect:
-                    _screenEffects.Enqueue(step.EffectType, (int)step.EffectDurationMs);
+                    int effectMs = (int)step.EffectDurationMs;
+                    if (effectMs < 100 || effectMs > 10_000)
+                    {
+                        Log($"Effet écran ignoré — durée invalide ({effectMs}ms). Min 100ms, max 10 000ms.", isMatch: false);
+                        break;
+                    }
+                    _screenEffects.Enqueue(step.EffectType, effectMs);
                     break;
 
                 case Models.StepType.MouseMove:
