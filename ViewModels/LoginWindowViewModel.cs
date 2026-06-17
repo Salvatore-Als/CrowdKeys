@@ -1,5 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CrowdKeys.Localization;
+using LocSingleton = CrowdKeys.Localization.Loc;
 using CrowdKeys.Services;
 
 namespace CrowdKeys.ViewModels;
@@ -15,6 +17,18 @@ public partial class LoginWindowViewModel : ViewModelBase
     [ObservableProperty] private bool   _hasCode;
 
     public event EventHandler<(string AccessToken, string RefreshToken)>? LoginSucceeded;
+
+    public LanguageOption SelectedLanguage
+    {
+        get => LocSingleton.Languages.FirstOrDefault(l => l.Code == LocSingleton.Instance.CurrentLang)
+               ?? LocSingleton.Languages[0];
+        set
+        {
+            if (value is null) return;
+            LocSingleton.Instance.SetLanguage(value.Code);
+            OnPropertyChanged();
+        }
+    }
 
     [RelayCommand]
     private async Task Connect()
@@ -32,18 +46,18 @@ public partial class LoginWindowViewModel : ViewModelBase
                 {
                     DeviceCode = code;
                     HasCode    = true;
-                    StatusText = "En attente de l'autorisation sur Twitch…";
+                    StatusText = LocSingleton.Instance["Login_WaitingAuth"];
                 }));
 
             LoginSucceeded?.Invoke(this, (at, rt));
         }
         catch (OperationCanceledException)
         {
-            StatusText = "Authentification annulée.";
+            StatusText = LocSingleton.Instance["Log_AuthCancelled"];
         }
         catch (Exception ex)
         {
-            StatusText = $"Erreur : {ex.Message}";
+            StatusText = string.Format(LocSingleton.Instance["Log_Error"], ex.Message);
         }
         finally
         {

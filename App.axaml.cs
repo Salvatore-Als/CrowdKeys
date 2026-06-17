@@ -61,11 +61,16 @@ public partial class App : Application
                 win.Close();
             });
 
-        win.Closing += (_, _) =>
+        EventHandler<Avalonia.Controls.WindowClosingEventArgs>? closingHandler = null;
+        closingHandler = (_, _) =>
         {
             if (desktop.MainWindow == win)
+            {
+                win.Closing -= closingHandler;
                 desktop.Shutdown();
+            }
         };
+        win.Closing += closingHandler;
 
         desktop.MainWindow = win;
         win.Show();

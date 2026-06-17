@@ -2,20 +2,23 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:CrowdKeys.ViewModels"
              xmlns:models="using:CrowdKeys.Models"
+             xmlns:loc="using:CrowdKeys.Localization"
              x:Class="CrowdKeys.Views.BindingsPanel"
-             x:DataType="vm:MainWindowViewModel">
+             x:DataType="vm:MainWindowViewModel"
+             x:CompileBindings="False">
 
     <Grid RowDefinitions="Auto,*,1,Auto">
 
         <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="16,12,16,6">
-            <TextBlock Grid.Column="0" Text="BINDINGS" FontSize="11"
-                       Foreground="#6b6b7a" FontWeight="SemiBold" LetterSpacing="1.5"
+            <TextBlock Grid.Column="0"
+                       Text="{Binding Loc[Bindings_Title]}"
+                       FontSize="11" Foreground="#6b6b7a" FontWeight="SemiBold" LetterSpacing="1.5"
                        VerticalAlignment="Center"/>
             <Button Grid.Column="1" Classes="ghost"
                     Command="{Binding RefreshRewardsCommand}"
                     IsEnabled="{Binding IsConnected}"
                     Padding="6,2" VerticalAlignment="Center"
-                    ToolTip.Tip="Actualiser la liste des rewards">
+                    ToolTip.Tip="{Binding Loc[Bindings_Refresh]}">
                 <Panel>
                     <TextBlock Text="↻" FontSize="14" IsVisible="{Binding !IsLoadingRewards}"/>
                     <TextBlock Text="…" FontSize="14" IsVisible="{Binding IsLoadingRewards}"/>
@@ -40,11 +43,11 @@
                                     <StackPanel Orientation="Horizontal" Spacing="4">
                                         <TextBlock Text="{Binding Steps.Count}"
                                                    FontSize="11" Foreground="#6b6b7a"/>
-                                        <TextBlock Text="étape(s)"
+                                        <TextBlock Text="{Binding $parent[Window].DataContext.Loc[Bindings_Steps]}"
                                                    FontSize="11" Foreground="#3d3d4a"/>
                                     </StackPanel>
-                                    <Panel IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsConnected}">
-                                        <TextBlock Text="Reward inexistant"
+                                    <Panel IsVisible="{Binding $parent[Window].DataContext.IsConnected}">
+                                        <TextBlock Text="{Binding $parent[Window].DataContext.Loc[Bindings_Orphan]}"
                                                    FontSize="11" Foreground="#f0a500"
                                                    FontStyle="Italic"
                                                    IsVisible="{Binding IsOrphaned}"/>
@@ -59,16 +62,18 @@
                                              IsChecked="{Binding IsEnabled}"
                                              VerticalAlignment="Center" Margin="0,0,6,0">
                                     <Panel>
-                                        <TextBlock Text="ACTIF" FontSize="11" FontWeight="SemiBold"
+                                        <TextBlock Text="{Binding $parent[Window].DataContext.Loc[Bindings_Active]}"
+                                                   FontSize="11" FontWeight="SemiBold"
                                                    Foreground="#00c853" IsVisible="{Binding IsEnabled}"/>
-                                        <TextBlock Text="INACTIF" FontSize="11" FontWeight="SemiBold"
+                                        <TextBlock Text="{Binding $parent[Window].DataContext.Loc[Bindings_Inactive]}"
+                                                   FontSize="11" FontWeight="SemiBold"
                                                    Foreground="#e53935" IsVisible="{Binding !IsEnabled}"/>
                                     </Panel>
                                 </ToggleButton>
 
                                 <Button Grid.Column="2" Classes="danger"
                                         VerticalAlignment="Center" HorizontalAlignment="Center"
-                                        Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).DeleteBindingCommand}"
+                                        Command="{Binding $parent[Window].DataContext.DeleteBindingCommand}"
                                         CommandParameter="{Binding}">
                                     <TextBlock Text="✕" FontSize="11"/>
                                 </Button>
@@ -85,16 +90,15 @@
             <ComboBox Grid.Column="0"
                       ItemsSource="{Binding FilteredAvailableRewards}"
                       SelectedItem="{Binding SelectedNewReward}"
-                      PlaceholderText="Sélectionnez un reward…"
+                      PlaceholderText="{Binding Loc[Bindings_Select]}"
                       FontSize="13"
                       IsEnabled="{Binding IsConnected}"
                       HorizontalAlignment="Stretch"/>
             <Button Grid.Column="2"
                     Command="{Binding AddBindingCommand}"
                     IsEnabled="{Binding SelectedNewReward, Converter={x:Static ObjectConverters.IsNotNull}}"
-                    Padding="12,7" FontSize="13">
-                Ajouter
-            </Button>
+                    Content="{Binding Loc[Bindings_Add]}"
+                    Padding="12,7" FontSize="13"/>
         </Grid>
 
     </Grid>
