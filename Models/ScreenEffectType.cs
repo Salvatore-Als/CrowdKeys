@@ -14,7 +14,6 @@ public enum ScreenEffectType
     ZoomIn,
     ChromaticAberration,
     Glitch,
-    Vignette,
     Scanlines,
     ZoomPulse,
 }

@@ -23,10 +23,10 @@ public class GlitchEffect : IScreenEffect
 
             float y2 = Math.Min(y + bandH, fh);
 
-            var src = new SKRectI(0, (int)y, (int)fw, (int)y2);
+            var src = new SKRect(0, y, fw, y2);
             var dst = new SKRect(
-                dest.Left + shift,         dest.Top + y  * scaleY,
-                dest.Right + shift,        dest.Top + y2 * scaleY);
+                dest.Left + shift,  dest.Top + y  * scaleY,
+                dest.Right + shift, dest.Top + y2 * scaleY);
 
             canvas.DrawBitmap(frame, src, dst);
             y += bandH;

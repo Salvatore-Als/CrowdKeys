@@ -106,7 +106,6 @@ public class ScreenEffectService : IDisposable
             ScreenEffectType.ZoomIn              => new ZoomInEffect(),
             ScreenEffectType.ChromaticAberration => new ChromaticAberrationEffect(),
             ScreenEffectType.Glitch              => new GlitchEffect(),
-            ScreenEffectType.Vignette            => new VignetteEffect(),
             ScreenEffectType.Scanlines           => new ScanlinesEffect(),
             ScreenEffectType.ZoomPulse           => new ZoomPulseEffect(),
             _                                   => new MirrorEffect()

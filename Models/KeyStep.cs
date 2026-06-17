@@ -190,7 +190,6 @@ public partial class KeyStep : ObservableObject
             ScreenEffectType.ZoomIn              => "Trop Près",
             ScreenEffectType.ChromaticAberration => "LCD Mort",
             ScreenEffectType.Glitch              => "Corrupt",
-            ScreenEffectType.Vignette            => "Tunnel",
             ScreenEffectType.Scanlines           => "VHS",
             ScreenEffectType.ZoomPulse           => "Cardio",
             _                                    => EffectType.ToString()

@@ -23,7 +23,6 @@ public class ScreenEffectTypeConverter : IValueConverter
             ScreenEffectType.ZoomIn              => "Trop Près",
             ScreenEffectType.ChromaticAberration => "Écran Mort",
             ScreenEffectType.Glitch              => "Corruption",
-            ScreenEffectType.Vignette            => "Tunnel de la Mort",
             ScreenEffectType.Scanlines           => "Vieille Télé",
             ScreenEffectType.ZoomPulse           => "Palpitations",
             _                                    => value.ToString()
