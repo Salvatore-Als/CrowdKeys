@@ -1,85 +1,116 @@
 # CrowdKeys
 
-**[crowdkeys.dev](https://crowdkeys.dev)**
+**[crowdkeys.dev](https://crowdkeys.dev)** — v1.1.0
 
-Associe des récompenses de points de chaîne Twitch à des actions clavier/souris sur votre PC. Quand un viewer rachète une récompense, l'application exécute automatiquement la séquence d'actions configurée.
+CrowdKeys maps Twitch channel point rewards to keyboard/mouse actions on your PC. When a viewer redeems a reward, the app executes the configured action sequence automatically — no third-party software or browser extension needed.
 
-## Fonctionnement
+---
 
-1. Vous vous connectez via **OAuth Device Flow** (aucun mot de passe saisi dans l'app)
-2. L'app s'abonne à votre chaîne via **Twitch EventSub WebSocket** (`channel.channel_points_custom_reward_redemption.add`)
-3. À chaque rachat, elle cherche un binding dont le nom correspond à la récompense
-4. Elle exécute les étapes dans l'ordre : touches, clics, scroll, déplacement, pauses
+## Features
 
-### Types d'étapes disponibles
+### Reward bindings
+Create one binding per reward. Each binding holds an ordered list of steps that execute sequentially when the reward is redeemed. Bindings can be individually enabled or disabled, and each can have an optional description.
+
+### Step types
 
 | Type | Description |
 |------|-------------|
-| **Touche** | Combinaison clavier (Ctrl/Shift/Alt/Win + touche), répétable avec délai optionnel |
-| **Pause** | Attente en millisecondes |
-| **Clic souris** | Clic gauche / droit / molette, répétable |
-| **Scroll souris** | Scroll haut ou bas d'un nombre de crans |
-| **Déplacement souris** | Déplacement relatif en pixels, avec vitesse optionnelle |
+| **Key** | Keyboard combo (Ctrl / Shift / Alt / Win + key). Repeatable with optional delay between presses. |
+| **Pause** | Wait a fixed number of milliseconds before the next step. |
+| **Mouse click** | Left, right, or middle click. Repeatable. |
+| **Mouse scroll** | Scroll up or down by a configurable number of ticks. |
+| **Mouse move** | Relative pixel movement from current cursor position. Optional speed (ms). |
+| **Screen effect** | Full-screen visual effect rendered on top of all windows for a set duration. Windows only. |
 
-### Multi-compte
+### Screen effects (Windows only)
 
-L'application supporte plusieurs comptes Twitch. Les paramètres de chaque compte sont sauvegardés séparément dans `%APPDATA%\CrowdKeys\settings_<userId>.json`. Le dernier compte utilisé est mémorisé dans `%APPDATA%\CrowdKeys\global_config.json`.
+14 effects available: Horizontal Mirror, Split Screen ×2, Split Screen ×4, Blur, Screen Shake, Vertical Flip, Invert Colors, Grayscale, Pixelate, Zoom ×1.6, RGB Aberration, Glitch, CRT Scanlines, Zoom Pulse.
+
+Effects use DXGI Desktop Duplication (falls back to GDI). The overlay window is excluded from capture to avoid feedback loops.
+
+### Activity log
+Real-time log of all connection events, reward redemptions, and errors. Clearable.
+
+### Auto-reconnect
+On disconnection, the app retries automatically with exponential backoff (up to 5 attempts). Handles expired tokens and re-authentication transparently.
+
+### Pause / Resume
+Pause the listener without disconnecting. Resume reconnects to the EventSub stream.
+
+### Multi-language
+UI available in **English**, **French**, **German**, and **Italian**. Language switches live — no restart needed. Selector available on both the login screen and the main window.
+
+### Multi-account
+Multiple Twitch accounts supported. Each account's bindings and tokens are stored separately. The last used account is restored on startup.
 
 ---
 
-## Prérequis
+## Authentication
 
-- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
-- Un **Client ID Twitch** (application enregistrée sur [dev.twitch.tv](https://dev.twitch.tv/console/apps))
-  - Type d'application : **Autre**
-  - Catégorie : **Outil de développement**
-  - Aucune URL de redirection OAuth n'est nécessaire (flux device)
+Sign in via **OAuth Device Flow**:
+1. Click **Connect** — the app requests a device code from Twitch
+2. A code appears in the UI — enter it at [twitch.tv/activate](https://www.twitch.tv/activate)
+3. The app polls for approval and connects automatically
+
+No password is ever entered in the app. Required scope: `channel:read:redemptions`.
 
 ---
 
-## Configuration
+## Data storage
 
-Copiez `build.config.private.props.exemple` en `build.config.private.props` et renseignez votre Client ID :
+| Platform | Path |
+|----------|------|
+| Windows | `%APPDATA%\CrowdKeys\` |
+| macOS | `~/Library/Application Support/CrowdKeys/` |
 
-```bash
-cp build.config.private.props.exemple build.config.private.props
-```
+- `config.json` — last used account ID
+- `profiles/<userId>.json` — tokens and bindings per account
+
+---
+
+## Requirements
+
+- [.NET 8 Runtime](https://dotnet.microsoft.com/download/dotnet/8.0) (or use the self-contained build)
+- A **Twitch Client ID** — register an app on [dev.twitch.tv](https://dev.twitch.tv/console/apps)
+  - Type: **Other** / Category: **Developer Tool**
+  - No OAuth redirect URL needed
+
+---
+
+## Building from source
+
+Copy `build.config.private.props.exemple` to `build.config.private.props` and add your Client ID:
 
 ```xml
 <Project>
   <PropertyGroup>
-    <TwitchClientId>VOTRE_CLIENT_ID_ICI</TwitchClientId>
+    <TwitchClientId>YOUR_CLIENT_ID_HERE</TwitchClientId>
   </PropertyGroup>
 </Project>
 ```
 
-> `build.config.private.props` est ignoré par git. Ne commitez jamais votre Client ID.
-
----
-
-## Build
+> `build.config.private.props` is git-ignored. Never commit your Client ID.
 
 ```bash
-# Restaurer les dépendances
-dotnet restore
-
-# Lancer en mode développement
+# Run in development
 dotnet run
 
-# Compiler en release
-dotnet build -c Release
-
-# Publier un exécutable autonome (Windows x64)
-dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true
+# Publish self-contained single-file exe (Windows x64)
+dotnet publish -r win-x64 -c Release --self-contained true -p:PublishSingleFile=true
 ```
 
-L'exécutable publié se trouve dans `bin/Release/net8.0/win-x64/publish/`.
+Output: `bin/Release/net8.0/win-x64/publish/CrowdKeys.exe`
 
 ---
 
-## Stack technique
+## Tech stack
 
-- **Avalonia 12** — UI cross-platform (MVVM, bindings compilés)
-- **CommunityToolkit.Mvvm** — source generators pour `ObservableProperty` / `RelayCommand`
-- **Twitch EventSub WebSocket** — réception des événements en temps réel
-- **OAuth Device Flow** — authentification sans redirection HTTP locale (scope : `channel:read:redemptions`)
+| | |
+|---|---|
+| **Avalonia 12** | Cross-platform UI — MVVM, compiled bindings |
+| **CommunityToolkit.Mvvm** | `ObservableProperty` / `RelayCommand` source generators |
+| **Twitch EventSub WebSocket** | Real-time reward redemption events |
+| **OAuth Device Flow** | Token-based auth without a local HTTP server |
+| **SkiaSharp** | Screen effect rendering |
+| **DXGI Desktop Duplication** | High-performance Windows screen capture |
+| **GDI BitBlt** | Fallback screen capture for older GPU drivers |
