@@ -155,12 +155,12 @@
                                     <Grid ColumnDefinitions="*,12,*">
                                         <StackPanel Grid.Column="0" Spacing="5">
                                             <TextBlock Text="X (PX)" FontSize="11" Foreground="#6b6b7a" FontWeight="SemiBold"/>
-                                            <NumericUpDown Value="{Binding MoveX}" Minimum="-5000" Maximum="5000"
+                                            <NumericUpDown Value="{Binding MoveX}" Minimum="-100000" Maximum="100000"
                                                            FormatString="0" Increment="10" ParsingNumberStyle="Integer"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="2" Spacing="5">
                                             <TextBlock Text="Y (PX)" FontSize="11" Foreground="#6b6b7a" FontWeight="SemiBold"/>
-                                            <NumericUpDown Value="{Binding MoveY}" Minimum="-5000" Maximum="5000"
+                                            <NumericUpDown Value="{Binding MoveY}" Minimum="-100000" Maximum="100000"
                                                            FormatString="0" Increment="10" ParsingNumberStyle="Integer"/>
                                         </StackPanel>
                                     </Grid>
