@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 using CrowdKeys.Models;
 using CrowdKeys.ScreenEffects;
 
@@ -14,9 +16,14 @@ public class LogEntry
 
 public class RedemptionService
 {
+    [DllImport("user32.dll")] private static extern IntPtr GetForegroundWindow();
+    [DllImport("user32.dll")] private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
+
     private readonly IKeySimulator       _keySimulator;
     private readonly ScreenEffectService _screenEffects;
     private List<RedemptionBinding> _bindings = [];
+
+    public string TargetProcessName { get; set; } = "";
 
     public event EventHandler<LogEntry>? LogAdded;
 
@@ -28,6 +35,27 @@ public class RedemptionService
 
     public void UpdateBindings(IEnumerable<RedemptionBinding> bindings) =>
         _bindings = bindings.ToList();
+
+    private bool IsForegroundProcessMatch()
+    {
+        if (string.IsNullOrWhiteSpace(TargetProcessName))
+            return true;
+
+        if (!OperatingSystem.IsWindows())
+            return true;
+
+        try
+        {
+            var hwnd = GetForegroundWindow();
+            GetWindowThreadProcessId(hwnd, out var pid);
+            var proc = Process.GetProcessById((int)pid);
+            return proc.ProcessName.Equals(TargetProcessName, StringComparison.OrdinalIgnoreCase);
+        }
+        catch
+        {
+            return true;
+        }
+    }
 
     public async Task OnRewardReceivedAsync(string rewardName)
     {
@@ -44,6 +72,12 @@ public class RedemptionService
         if (match.Steps.Count == 0)
         {
             Log($"\"{rewardName}\" - binding sans étapes", isMatch: false);
+            return;
+        }
+
+        if (!IsForegroundProcessMatch())
+        {
+            Log($"\"{rewardName}\" - ignoré ({TargetProcessName} pas en focus)", isMatch: false);
             return;
         }
 

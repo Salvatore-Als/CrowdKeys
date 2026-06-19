@@ -364,7 +364,7 @@
         <Border Grid.Row="2" Background="#0e0e10"
                 BorderBrush="#2d2d35" BorderThickness="0,1,0,0"
                 Padding="16,5">
-            <Grid ColumnDefinitions="Auto,*,Auto">
+            <Grid ColumnDefinitions="Auto,*,Auto,8,Auto">
                 <!-- Language selector -->
                 <ComboBox Grid.Column="0"
                           ItemsSource="{x:Static loc:Loc.Languages}"
@@ -381,8 +381,34 @@
                     </ComboBox.ItemTemplate>
                 </ComboBox>
 
-                <!-- Copyright + version -->
+                <!-- Target process filter -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                    <TextBlock Text="Focus:" FontSize="12" Foreground="#6b6b7a" VerticalAlignment="Center"/>
+                    <ComboBox ItemsSource="{Binding AvailableProcesses}"
+                              SelectedItem="{Binding SelectedTargetProcess}"
+                              FontSize="12"
+                              MinWidth="160"
+                              MaxWidth="220"
+                              Background="Transparent"
+                              BorderThickness="0"
+                              Padding="4,2"/>
+                    <Button Command="{Binding RefreshProcessesCommand}"
+                            Classes="ghost"
+                            Padding="6,4"
+                            FontSize="11"
+                            Content="↻"
+                            ToolTip.Tip="Rafraîchir la liste des processus"/>
+                    <Button IsVisible="{Binding SelectedTargetProcess, Converter={x:Static ObjectConverters.IsNotNull}}"
+                            Command="{Binding ClearTargetProcessCommand}"
+                            Classes="ghost"
+                            Padding="6,4"
+                            FontSize="11"
+                            Content="✕"
+                            ToolTip.Tip="Supprimer le filtre"/>
+                </StackPanel>
+
+                <!-- Copyright + version -->
+                <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                     <TextBlock Text="{Binding Loc[Copyright]}"
                                FontSize="13" Foreground="#6b6b7a"/>
                     <TextBlock Text="•" FontSize="11" Foreground="#6b6b7a"/>

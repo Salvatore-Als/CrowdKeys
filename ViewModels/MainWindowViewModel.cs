@@ -104,6 +104,38 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public static string AppVersion => BuildInfo.Version;
 
+    // ── Target process filter ─────────────────────────────────────────────────
+
+    [ObservableProperty] private ObservableCollection<string> _availableProcesses = [];
+    [ObservableProperty] private string? _selectedTargetProcess;
+
+    partial void OnSelectedTargetProcessChanged(string? value)
+    {
+        _redemption.TargetProcessName = value ?? "";
+        SaveSettings();
+    }
+
+    [RelayCommand]
+    private void ClearTargetProcess()
+    {
+        SelectedTargetProcess = null;
+    }
+
+    [RelayCommand]
+    private void RefreshProcesses()
+    {
+        var procs = System.Diagnostics.Process.GetProcesses()
+            .Select(p => p.ProcessName)
+            .Where(n => !string.IsNullOrWhiteSpace(n))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(n => n)
+            .ToList();
+
+        AvailableProcesses.Clear();
+        foreach (var p in procs)
+            AvailableProcesses.Add(p);
+    }
+
     // ── Log ───────────────────────────────────────────────────────────────────
 
     [ObservableProperty] private ObservableCollection<LogEntry> _log = [];
@@ -670,6 +702,8 @@ public partial class MainWindowViewModel : ViewModelBase
             Bindings      = new ObservableCollection<RedemptionBinding>(s.Bindings);
             SyncBindings();
             HasCredentials = !string.IsNullOrEmpty(_accessToken);
+            SelectedTargetProcess = string.IsNullOrEmpty(s.TargetProcessName) ? null : s.TargetProcessName;
+            _redemption.TargetProcessName = s.TargetProcessName;
         }
         catch { }
     }
@@ -756,10 +790,11 @@ public partial class MainWindowViewModel : ViewModelBase
             File.WriteAllText(ProfilePath, JsonSerializer.Serialize(
                 new AppSettings
                 {
-                    AccessToken  = _accessToken,
-                    RefreshToken = _refreshToken,
-                    LoginName    = LoginName,
-                    Bindings     = [.. Bindings],
+                    AccessToken       = _accessToken,
+                    RefreshToken      = _refreshToken,
+                    LoginName         = LoginName,
+                    Bindings          = [.. Bindings],
+                    TargetProcessName = SelectedTargetProcess ?? "",
                 },
                 new JsonSerializerOptions { WriteIndented = true }));
         }
