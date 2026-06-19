@@ -129,6 +129,15 @@ public class RedemptionService
                     _screenEffects.Enqueue(step.EffectType, effectMs);
                     break;
 
+                case Models.StepType.KeyHold:
+                    if (step.Keys.Count > 0 && step.HoldDurationMs > 0)
+                    {
+                        _keySimulator.KeyDown(step.Keys);
+                        await Task.Delay((int)step.HoldDurationMs);
+                        _keySimulator.KeyUp(step.Keys);
+                    }
+                    break;
+
                 case Models.StepType.MouseMove:
                     if (step.MoveSpeedMs <= 0)
                     {

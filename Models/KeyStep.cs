@@ -2,7 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace CrowdKeys.Models;
 
-public enum StepType { Key, Pause, MouseClick, MouseScroll, MouseMove, ScreenEffect }
+public enum StepType { Key, Pause, MouseClick, MouseScroll, MouseMove, ScreenEffect, KeyHold }
 public enum MouseButton { Left, Right, Middle }
 public enum ScrollDirection { Up, Down }
 
@@ -15,6 +15,7 @@ public partial class KeyStep : ObservableObject
     [NotifyPropertyChangedFor(nameof(IsMouseScrollStep))]
     [NotifyPropertyChangedFor(nameof(IsMouseMoveStep))]
     [NotifyPropertyChangedFor(nameof(IsScreenEffectStep))]
+    [NotifyPropertyChangedFor(nameof(IsKeyHoldStep))]
     [NotifyPropertyChangedFor(nameof(DisplayText))]
     private StepType _type = StepType.Key;
 
@@ -70,12 +71,16 @@ public partial class KeyStep : ObservableObject
     [ObservableProperty][NotifyPropertyChangedFor(nameof(DisplayText))] private decimal _moveY = 0;
     [ObservableProperty] private decimal _moveSpeedMs = 0;
 
+    // Key hold fields
+    [ObservableProperty][NotifyPropertyChangedFor(nameof(DisplayText))] private decimal _holdDurationMs = 1000;
+
     public bool IsKeyStep          => Type == StepType.Key;
     public bool IsPauseStep        => Type == StepType.Pause;
     public bool IsMouseClickStep   => Type == StepType.MouseClick;
     public bool IsMouseScrollStep  => Type == StepType.MouseScroll;
     public bool IsMouseMoveStep    => Type == StepType.MouseMove;
     public bool IsScreenEffectStep => Type == StepType.ScreenEffect;
+    public bool IsKeyHoldStep      => Type == StepType.KeyHold;
 
     public bool IsLeftClick
     {
@@ -177,6 +182,7 @@ public partial class KeyStep : ObservableObject
         StepType.MouseClick   => $"Clic {MouseButton} ×{(int)RepeatCount}",
         StepType.MouseScroll  => $"Scroll {ScrollDirection} ×{(int)ScrollAmount}",
         StepType.MouseMove    => $"Move ({(int)MoveX},{(int)MoveY}px)",
+        StepType.KeyHold      => $"Hold {BuildKeyText()} • {(int)HoldDurationMs}ms",
         StepType.ScreenEffect => $"Effet {EffectType switch {
             ScreenEffectType.Mirror              => "Miroir H",
             ScreenEffectType.ShuffleQuadrants    => "Split x2",

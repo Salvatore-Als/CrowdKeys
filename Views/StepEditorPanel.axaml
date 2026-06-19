@@ -70,6 +70,7 @@
                                         <TextBlock IsVisible="{Binding IsMouseScrollStep}"  Text="{Binding $parent[Window].DataContext.Loc[Step_TypeScroll]}" FontSize="11" FontWeight="SemiBold" Foreground="#c0c0cc"/>
                                         <TextBlock IsVisible="{Binding IsMouseMoveStep}"    Text="{Binding $parent[Window].DataContext.Loc[Step_TypeMove]}"   FontSize="11" FontWeight="SemiBold" Foreground="#c0c0cc"/>
                                         <TextBlock IsVisible="{Binding IsScreenEffectStep}" Text="{Binding $parent[Window].DataContext.Loc[Step_TypeEffect]}" FontSize="11" FontWeight="SemiBold" Foreground="#9147ff"/>
+                                        <TextBlock IsVisible="{Binding IsKeyHoldStep}"      Text="{Binding $parent[Window].DataContext.Loc[Step_TypeHold]}"   FontSize="11" FontWeight="SemiBold" Foreground="#f0a500"/>
                                     </StackPanel>
                                     <Button Grid.Column="1" Classes="danger"
                                             VerticalAlignment="Center"
@@ -171,6 +172,25 @@
                                     </StackPanel>
                                 </StackPanel>
 
+                                <!-- KEY HOLD step body -->
+                                <StackPanel IsVisible="{Binding IsKeyHoldStep}" Spacing="8">
+                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <ToggleButton Classes="modifier" IsChecked="{Binding UseCtrl}"  Content="CTRL"/>
+                                        <ToggleButton Classes="modifier" IsChecked="{Binding UseShift}" Content="SHIFT"/>
+                                        <ToggleButton Classes="modifier" IsChecked="{Binding UseAlt}"   Content="ALT"/>
+                                        <ToggleButton Classes="modifier" IsChecked="{Binding UseWin}"   Content="WIN"/>
+                                        <ComboBox SelectedItem="{Binding MainKey}"
+                                                  ItemsSource="{x:Static vm:MainWindowViewModel.AvailableKeys}"
+                                                  PlaceholderText="{Binding $parent[Window].DataContext.Loc[Step_KeyPlaceholder]}"
+                                                  MinWidth="90" FontSize="13"/>
+                                    </StackPanel>
+                                    <StackPanel Spacing="5">
+                                        <TextBlock Text="{Binding $parent[Window].DataContext.Loc[Step_HoldDuration]}" FontSize="11" Foreground="#6b6b7a" FontWeight="SemiBold"/>
+                                        <NumericUpDown Value="{Binding HoldDurationMs}" Minimum="50" Maximum="30000"
+                                                       FormatString="0" Increment="100" ParsingNumberStyle="Integer"/>
+                                    </StackPanel>
+                                </StackPanel>
+
                                 <!-- SCREEN EFFECT step body -->
                                 <StackPanel IsVisible="{Binding IsScreenEffectStep}" Spacing="8">
                                     <TextBlock Text="{Binding $parent[Window].DataContext.Loc[Step_Effect]}" FontSize="11" Foreground="#6b6b7a" FontWeight="SemiBold"/>
@@ -239,6 +259,12 @@
                 <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <TextBlock Text="↗" FontSize="13" VerticalAlignment="Center"/>
                     <TextBlock Text="{Binding Loc[Step_AddMove]}" FontSize="13" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Button>
+            <Button Classes="ghost" Command="{Binding AddKeyHoldStepCommand}" Padding="14,8" FontSize="13" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+                <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock Text="⏷" FontSize="13" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding Loc[Step_AddHold]}" FontSize="13" VerticalAlignment="Center"/>
                 </StackPanel>
             </Button>
             <Button Classes="ghost" Command="{Binding AddScreenEffectStepCommand}" Padding="14,8" FontSize="13" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">

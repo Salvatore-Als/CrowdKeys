@@ -9,15 +9,40 @@ public class CrossPlatformKeySimulator : IKeySimulator
 
     public void PressCombo(IReadOnlyList<string> keys)
     {
+        if (keys.Count == 0)
+            return;
+
+        if (OperatingSystem.IsWindows())
+            WindowsPressCombo(keys);
+        else if (OperatingSystem.IsMacOS())
+            MacOsPressCombo(keys);
+        else
+            LinuxPressCombo(keys);
+    }
+
+    public void KeyDown(IReadOnlyList<string> keys)
+    {
         if (keys.Count == 0) 
             return;
         
-        if (OperatingSystem.IsWindows())      
-            WindowsPressCombo(keys);
-        else if (OperatingSystem.IsMacOS())   
-            MacOsPressCombo(keys);
-        else                                  
-            LinuxPressCombo(keys);
+        if (OperatingSystem.IsWindows())    
+            WindowsKeyDown(keys);
+        else if (OperatingSystem.IsMacOS()) 
+            MacOsKeyDown(keys);
+        else                                
+            LinuxKeyDown(keys);
+    }
+
+    public void KeyUp(IReadOnlyList<string> keys)
+    {
+        if (keys.Count == 0) 
+            return;
+        if (OperatingSystem.IsWindows())    
+            WindowsKeyUp(keys);
+        else if (OperatingSystem.IsMacOS()) 
+            MacOsKeyUp(keys);                             
+        else                               
+            LinuxKeyUp(keys);
     }
 
     public void ClickMouse(MouseButton button, int repeatCount = 1)
@@ -99,7 +124,8 @@ public class CrossPlatformKeySimulator : IKeySimulator
     private static void WindowsPressCombo(IReadOnlyList<string> keys)
     {
         var vkCodes = keys.Select(WindowsVkCode).Where(vk => vk != 0).ToList();
-        if (vkCodes.Count == 0) return;
+        if (vkCodes.Count == 0) 
+            return;
 
         var inputs = new INPUT[vkCodes.Count * 2];
         for (var i = 0; i < vkCodes.Count; i++)
@@ -124,6 +150,36 @@ public class CrossPlatformKeySimulator : IKeySimulator
             };
         }
 
+        SendInput((uint)inputs.Length, inputs, Marshal.SizeOf<INPUT>());
+    }
+
+    private static void WindowsKeyDown(IReadOnlyList<string> keys)
+    {
+        var vkCodes = keys.Select(WindowsVkCode).Where(vk => vk != 0).ToList();
+        if (vkCodes.Count == 0) 
+            return;
+            
+        var inputs = vkCodes.Select(vk =>
+        {
+            var scan  = (ushort)MapVirtualKey(vk, MAPVK_VK_TO_VSC);
+            var flags = KEYEVENTF_SCANCODE | (IsExtendedKey(vk) ? KEYEVENTF_EXTENDEDKEY : 0u);
+            return new INPUT { type = INPUT_KEYBOARD, ki = new KEYBDINPUT { wVk = 0, wScan = scan, dwFlags = flags } };
+        }).ToArray();
+        SendInput((uint)inputs.Length, inputs, Marshal.SizeOf<INPUT>());
+    }
+
+    private static void WindowsKeyUp(IReadOnlyList<string> keys)
+    {
+        var vkCodes = keys.Select(WindowsVkCode).Where(vk => vk != 0).Reverse().ToList();
+        if (vkCodes.Count == 0) 
+            return;
+        
+        var inputs = vkCodes.Select(vk =>
+        {
+            var scan  = (ushort)MapVirtualKey(vk, MAPVK_VK_TO_VSC);
+            var flags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP | (IsExtendedKey(vk) ? KEYEVENTF_EXTENDEDKEY : 0u);
+            return new INPUT { type = INPUT_KEYBOARD, ki = new KEYBDINPUT { wVk = 0, wScan = scan, dwFlags = flags } };
+        }).ToArray();
         SendInput((uint)inputs.Length, inputs, Marshal.SizeOf<INPUT>());
     }
 
@@ -287,6 +343,40 @@ public class CrossPlatformKeySimulator : IKeySimulator
         }
     }
 
+    private static void MacOsKeyDown(IReadOnlyList<string> keys)
+    {
+        var flags = MacModifierFlags(keys.Where(IsMacModifier));
+        foreach (var key in keys)
+        {
+            var code = MacVkCode(key);
+            if (code == ushort.MaxValue) 
+                continue;
+            
+            var ev = CGEventCreateKeyboardEvent(0, code, true);
+            if (flags != 0) 
+                CGEventSetFlags(ev, flags);
+            
+            CGEventPost(kCGHIDEventTap, ev); CFRelease(ev);
+        }
+    }
+
+    private static void MacOsKeyUp(IReadOnlyList<string> keys)
+    {
+        var flags = MacModifierFlags(keys.Where(IsMacModifier));
+        foreach (var key in keys.Reverse())
+        {
+            var code = MacVkCode(key);
+            if (code == ushort.MaxValue) 
+                continue;
+            
+            var ev = CGEventCreateKeyboardEvent(0, code, false);
+            if (flags != 0) 
+                CGEventSetFlags(ev, flags);
+            
+            CGEventPost(kCGHIDEventTap, ev); CFRelease(ev);
+        }
+    }
+
     private static ushort MacVkCode(string key) => key.ToUpperInvariant() switch
     {
         "CTRL" or "CONTROL" => 0x3B, "SHIFT" => 0x38,
@@ -376,6 +466,16 @@ public class CrossPlatformKeySimulator : IKeySimulator
     }
 
     // ── Linux ─────────────────────────────────────────────────────────────────
+
+    private static void LinuxKeyDown(IReadOnlyList<string> keys)
+    {
+        try { System.Diagnostics.Process.Start("xdotool", $"keydown {string.Join("+", keys.Select(k => k.ToLower()))}"); } catch { }
+    }
+
+    private static void LinuxKeyUp(IReadOnlyList<string> keys)
+    {
+        try { System.Diagnostics.Process.Start("xdotool", $"keyup {string.Join("+", keys.Select(k => k.ToLower()))}"); } catch { }
+    }
 
     private static void LinuxPressCombo(IReadOnlyList<string> keys)
     {

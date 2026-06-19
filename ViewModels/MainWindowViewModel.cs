@@ -162,7 +162,9 @@ public partial class MainWindowViewModel : ViewModelBase
         _eventSub.Disconnected += (_, _) =>
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
-                if (IsPaused) return;
+                if (IsPaused) 
+                    return;
+                
                 IsConnected = false;
                 StatusColor = "#3d3d4a";
                 ClearBindingOrphans();
@@ -622,6 +624,14 @@ public partial class MainWindowViewModel : ViewModelBase
             return;
 
         SelectedBinding.Steps.Add(new KeyStep { Type = StepType.MouseMove });
+        SaveSettings();
+    }
+
+    [RelayCommand]
+    private void AddKeyHoldStep()
+    {
+        if (SelectedBinding is null) return;
+        SelectedBinding.Steps.Add(new KeyStep { Type = StepType.KeyHold, HoldDurationMs = 1000 });
         SaveSettings();
     }
 

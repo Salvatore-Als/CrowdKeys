@@ -98,6 +98,7 @@ public sealed class Loc : INotifyPropertyChanged
             ["Step_TypeScroll"]   = "MOLETTE",
             ["Step_TypeMove"]     = "DÉPLACEMENT",
             ["Step_TypeEffect"]   = "EFFET ÉCRAN",
+            ["Step_TypeHold"]     = "MAINTIEN TOUCHE",
             ["Step_Iterations"]   = "ITÉRATIONS",
             ["Step_DelayBetween"] = "DÉLAI ENTRE (MS) • 0 = INSTANTANÉ",
             ["Step_Duration"]     = "DURÉE (MS)",
@@ -117,6 +118,8 @@ public sealed class Loc : INotifyPropertyChanged
             ["Step_AddScroll"]    = "Molette",
             ["Step_AddMove"]      = "Déplacer",
             ["Step_AddEffect"]    = "Effet écran",
+            ["Step_AddHold"]      = "Maintien",
+            ["Step_HoldDuration"] = "DURÉE MAINTIEN (MS)",
             ["Step_KeyPlaceholder"] = "Touche…",
 
             // Screen effects
@@ -196,6 +199,7 @@ public sealed class Loc : INotifyPropertyChanged
             ["Step_TypeScroll"]   = "SCROLL",
             ["Step_TypeMove"]     = "MOVE",
             ["Step_TypeEffect"]   = "SCREEN EFFECT",
+            ["Step_TypeHold"]     = "KEY HOLD",
             ["Step_Iterations"]   = "ITERATIONS",
             ["Step_DelayBetween"] = "DELAY BETWEEN (MS) • 0 = INSTANT",
             ["Step_Duration"]     = "DURATION (MS)",
@@ -215,6 +219,8 @@ public sealed class Loc : INotifyPropertyChanged
             ["Step_AddScroll"]    = "Scroll",
             ["Step_AddMove"]      = "Move",
             ["Step_AddEffect"]    = "Screen effect",
+            ["Step_AddHold"]      = "Hold",
+            ["Step_HoldDuration"] = "HOLD DURATION (MS)",
             ["Step_KeyPlaceholder"] = "Key…",
 
             ["Effect_Mirror"]     = "Horizontal Mirror",
@@ -293,6 +299,7 @@ public sealed class Loc : INotifyPropertyChanged
             ["Step_TypeScroll"]   = "SCROLLEN",
             ["Step_TypeMove"]     = "BEWEGEN",
             ["Step_TypeEffect"]   = "BILDSCHIRMEFFEKT",
+            ["Step_TypeHold"]     = "TASTE HALTEN",
             ["Step_Iterations"]   = "ITERATIONEN",
             ["Step_DelayBetween"] = "VERZÖGERUNG (MS) • 0 = SOFORT",
             ["Step_Duration"]     = "DAUER (MS)",
@@ -312,6 +319,8 @@ public sealed class Loc : INotifyPropertyChanged
             ["Step_AddScroll"]    = "Scrollen",
             ["Step_AddMove"]      = "Bewegen",
             ["Step_AddEffect"]    = "Bildschirmeffekt",
+            ["Step_AddHold"]      = "Halten",
+            ["Step_HoldDuration"] = "HALTEDAUER (MS)",
             ["Step_KeyPlaceholder"] = "Taste…",
 
             ["Effect_Mirror"]     = "Horizontaler Spiegel",
@@ -390,6 +399,7 @@ public sealed class Loc : INotifyPropertyChanged
             ["Step_TypeScroll"]   = "ROTELLA",
             ["Step_TypeMove"]     = "SPOSTA",
             ["Step_TypeEffect"]   = "EFFETTO SCHERMO",
+            ["Step_TypeHold"]     = "TASTO TENUTO",
             ["Step_Iterations"]   = "ITERAZIONI",
             ["Step_DelayBetween"] = "RITARDO TRA (MS) • 0 = ISTANTANEO",
             ["Step_Duration"]     = "DURATA (MS)",
@@ -409,6 +419,8 @@ public sealed class Loc : INotifyPropertyChanged
             ["Step_AddScroll"]    = "Rotella",
             ["Step_AddMove"]      = "Sposta",
             ["Step_AddEffect"]    = "Effetto schermo",
+            ["Step_AddHold"]      = "Tieni",
+            ["Step_HoldDuration"] = "DURATA PRESSIONE (MS)",
             ["Step_KeyPlaceholder"] = "Tasto…",
 
             ["Effect_Mirror"]     = "Specchio Orizzontale",
