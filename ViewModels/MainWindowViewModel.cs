@@ -150,6 +150,8 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         _redemption = new RedemptionService(new CrossPlatformKeySimulator(), _screenEffects);
 
+        _screenEffects.OpenPreviewWindow();
+
         _redemption.LogAdded += (_, entry) =>
             Avalonia.Threading.Dispatcher.UIThread.Post(() => Log.Insert(0, entry));
 

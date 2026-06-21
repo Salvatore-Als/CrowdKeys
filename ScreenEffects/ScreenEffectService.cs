@@ -10,7 +10,7 @@ public class ScreenEffectService : IDisposable
 {
     private readonly IScreenCapture _capture;
     private EffectOverlayWindow?    _overlay;
-    private PreviewWindow?          _obsWindow;
+    private PreviewWindow?          _previewWindow;
 
     private readonly SemaphoreSlim _queueLock = new(1, 1);
     private readonly Queue<(ScreenEffectType type, int durationMs)> _queue = new();
@@ -32,6 +32,15 @@ public class ScreenEffectService : IDisposable
             _capture       = new NoOpScreenCapture();
             _staticCapture = new NoOpScreenCapture();
         }
+    }
+
+    public void OpenPreviewWindow()
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            _previewWindow ??= new PreviewWindow();
+            _previewWindow.Show();
+        });
     }
 
     public void Enqueue(ScreenEffectType effectType, int durationMs)
@@ -128,9 +137,9 @@ public class ScreenEffectService : IDisposable
             _overlay.StartEffect(effect, frame);
             _overlay.Show();
 
-            _obsWindow ??= new PreviewWindow();
-            _obsWindow.StartEffect(effect, frame);
-            _obsWindow.Show();
+            _previewWindow ??= new PreviewWindow();
+            _previewWindow.StartEffect(effect, frame);
+            _previewWindow.Show();
         }, DispatcherPriority.Render);
 
         try
@@ -143,8 +152,7 @@ public class ScreenEffectService : IDisposable
             {
                 _overlay?.StopEffect();
                 _overlay?.Hide();
-                _obsWindow?.StopEffect();
-                _obsWindow?.Hide();
+                _previewWindow?.StopEffect();
             }, DispatcherPriority.Render);
 
             // No explicit Dispose — SKBitmap finalizer frees native memory safely.
@@ -185,7 +193,10 @@ public class ScreenEffectService : IDisposable
                     Volatile.Write(ref readIdx, writeIdx);
                     writeIdx ^= 1;
                 }
-                catch (OperationCanceledException) { return; }
+                catch (OperationCanceledException) 
+                { 
+                    return; 
+                }
             }
         }, captureCts.Token);
 
@@ -195,9 +206,9 @@ public class ScreenEffectService : IDisposable
             _overlay.StartEffectLive(effect, () => buffers[Volatile.Read(ref readIdx)]);
             _overlay.Show();
 
-            _obsWindow ??= new PreviewWindow();
-            _obsWindow.StartEffectLive(effect, () => buffers[Volatile.Read(ref readIdx)]);
-            _obsWindow.Show();
+            _previewWindow ??= new PreviewWindow();
+            _previewWindow.StartEffectLive(effect, () => buffers[Volatile.Read(ref readIdx)]);
+            _previewWindow.Show();
         }, DispatcherPriority.Render);
 
         try
@@ -212,8 +223,7 @@ public class ScreenEffectService : IDisposable
             {
                 _overlay?.StopEffect();
                 _overlay?.Hide();
-                _obsWindow?.StopEffect();
-                _obsWindow?.Hide();
+                _previewWindow?.StopEffect();
             }, DispatcherPriority.Render);
 
             // No explicit Dispose — let GC/finalizer free native memory.
@@ -232,7 +242,7 @@ public class ScreenEffectService : IDisposable
         Dispatcher.UIThread.Post(() =>
         {
             _overlay?.Close();
-            _obsWindow?.Close();
+            _previewWindow?.Close();
         });
     }
 }
