@@ -352,7 +352,7 @@
         </Border>
 
         <!-- ── Row 1 : Main body ── -->
-        <Grid Grid.Row="1" ColumnDefinitions="260,1,*,1,200">
+        <Grid Grid.Row="1" ColumnDefinitions="300,1,*,1,280">
             <views:BindingsPanel   Grid.Column="0"/>
             <Border                Grid.Column="1" Background="#2d2d35"/>
             <views:StepEditorPanel Grid.Column="2"/>
@@ -384,14 +384,17 @@
                 <!-- Target process filter -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                     <TextBlock Text="Focus:" FontSize="12" Foreground="#6b6b7a" VerticalAlignment="Center"/>
-                    <ComboBox ItemsSource="{Binding AvailableProcesses}"
+                    <TextBox Text="{Binding ProcessSearchText}"
+                             PlaceholderText="Search..."
+                             FontSize="12"
+                             Width="120"
+                             Padding="6,2"/>
+                    <ComboBox ItemsSource="{Binding FilteredProcesses}"
                               SelectedItem="{Binding SelectedTargetProcess}"
                               FontSize="12"
                               MinWidth="160"
                               MaxWidth="220"
-                              Background="Transparent"
-                              BorderThickness="0"
-                              Padding="4,2"/>
+                              Padding="6,4"/>
                     <Button Command="{Binding RefreshProcessesCommand}"
                             Classes="ghost"
                             Padding="6,4"

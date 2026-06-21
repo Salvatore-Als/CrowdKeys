@@ -107,7 +107,20 @@ public partial class MainWindowViewModel : ViewModelBase
     // ── Target process filter ─────────────────────────────────────────────────
 
     [ObservableProperty] private ObservableCollection<string> _availableProcesses = [];
+    [ObservableProperty] private ObservableCollection<string> _filteredProcesses = [];
     [ObservableProperty] private string? _selectedTargetProcess;
+    [ObservableProperty] private string _processSearchText = "";
+
+    partial void OnProcessSearchTextChanged(string value) => ApplyProcessFilter();
+
+    private void ApplyProcessFilter()
+    {
+        var search = ProcessSearchText?.Trim() ?? "";
+        FilteredProcesses.Clear();
+        foreach (var p in AvailableProcesses)
+            if (string.IsNullOrEmpty(search) || p.Contains(search, StringComparison.OrdinalIgnoreCase))
+                FilteredProcesses.Add(p);
+    }
 
     partial void OnSelectedTargetProcessChanged(string? value)
     {
@@ -134,6 +147,8 @@ public partial class MainWindowViewModel : ViewModelBase
         AvailableProcesses.Clear();
         foreach (var p in procs)
             AvailableProcesses.Add(p);
+
+        ApplyProcessFilter();
     }
 
     // ── Log ───────────────────────────────────────────────────────────────────
@@ -151,6 +166,7 @@ public partial class MainWindowViewModel : ViewModelBase
         _redemption = new RedemptionService(new CrossPlatformKeySimulator(), _screenEffects);
 
         _screenEffects.OpenPreviewWindow();
+        RefreshProcesses();
 
         _redemption.LogAdded += (_, entry) =>
             Avalonia.Threading.Dispatcher.UIThread.Post(() => Log.Insert(0, entry));
@@ -667,6 +683,13 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [RelayCommand]
     private void ClearLog() => Log.Clear();
+
+    [ObservableProperty] private int _testEffectDurationMs = 3000;
+    [ObservableProperty] private ScreenEffectType _selectedTestEffect = ScreenEffectType.Mirror;
+
+    [RelayCommand]
+    private void TestSelectedEffect() =>
+        _screenEffects.Enqueue(SelectedTestEffect, TestEffectDurationMs);
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
