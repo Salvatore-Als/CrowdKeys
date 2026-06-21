@@ -7,8 +7,6 @@
         Height="540"
         ShowInTaskbar="False"
         ShowActivated="False"
-        WindowStartupLocation="Manual"
-        Background="Transparent"
-        TransparencyLevelHint="Transparent">
+        Background="Black">
     <local:EffectCanvas x:Name="EffectView"/>
 </Window>
