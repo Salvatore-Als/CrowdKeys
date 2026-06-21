@@ -96,7 +96,7 @@ public class ScreenEffectService : IDisposable
     }
 
     private const int MaxEffectDurationMs = 10_000;
-    private const int CaptureIntervalMs   = 33; // ~30 fps live capture
+    private const int CaptureIntervalMs   = 16; // ~60 fps live capture
 
     private async Task PlayOneAsync(ScreenEffectType effectType, int durationMs, CancellationToken ct)
     {
