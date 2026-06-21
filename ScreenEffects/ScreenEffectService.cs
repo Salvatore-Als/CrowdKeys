@@ -38,8 +38,11 @@ public class ScreenEffectService : IDisposable
     {
         Dispatcher.UIThread.Post(() =>
         {
-            _previewWindow ??= new PreviewWindow();
-            _previewWindow.Show();
+            if (_previewWindow is null)
+            {
+                _previewWindow = new PreviewWindow();
+                _previewWindow.Show();
+            }
         });
     }
 
