@@ -70,6 +70,7 @@
                                         <TextBlock IsVisible="{Binding IsMouseScrollStep}"  Text="{Binding $parent[Window].DataContext.Loc[Step_TypeScroll]}" FontSize="11" FontWeight="SemiBold" Foreground="#c0c0cc"/>
                                         <TextBlock IsVisible="{Binding IsMouseMoveStep}"    Text="{Binding $parent[Window].DataContext.Loc[Step_TypeMove]}"   FontSize="11" FontWeight="SemiBold" Foreground="#c0c0cc"/>
                                         <TextBlock IsVisible="{Binding IsScreenEffectStep}" Text="{Binding $parent[Window].DataContext.Loc[Step_TypeEffect]}" FontSize="11" FontWeight="SemiBold" Foreground="#9147ff"/>
+                                        <TextBlock IsVisible="{Binding IsKeyHoldStep}"      Text="{Binding $parent[Window].DataContext.Loc[Step_TypeHold]}"   FontSize="11" FontWeight="SemiBold" Foreground="#f0a500"/>
                                     </StackPanel>
                                     <Button Grid.Column="1" Classes="danger"
                                             VerticalAlignment="Center"
@@ -91,7 +92,16 @@
                                                   PlaceholderText="{Binding $parent[Window].DataContext.Loc[Step_KeyPlaceholder]}"
                                                   MinWidth="90" FontSize="13"/>
                                     </StackPanel>
-                                    <Grid ColumnDefinitions="*,12,*">
+                                    <!-- Normal / Maintenu toggle -->
+                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <ToggleButton Classes="modifier" IsChecked="{Binding !IsHeld, Mode=OneWay}"
+                                                      Content="{Binding $parent[Window].DataContext.Loc[Step_ModeNormal]}"
+                                                      Click="KeyModeNormal_Click"/>
+                                        <ToggleButton Classes="modifier" IsChecked="{Binding IsHeld}"
+                                                      Content="{Binding $parent[Window].DataContext.Loc[Step_ModeHeld]}"/>
+                                    </StackPanel>
+                                    <!-- Normal mode: iterations + delay -->
+                                    <Grid ColumnDefinitions="*,12,*" IsVisible="{Binding !IsHeld}">
                                         <StackPanel Grid.Column="0" Spacing="5">
                                             <TextBlock Text="{Binding $parent[Window].DataContext.Loc[Step_Iterations]}" FontSize="11" Foreground="#6b6b7a" FontWeight="SemiBold"/>
                                             <NumericUpDown Value="{Binding RepeatCount}" Minimum="1" Maximum="99"
@@ -104,6 +114,12 @@
                                                            FormatString="0" Increment="50" ParsingNumberStyle="Integer"/>
                                         </StackPanel>
                                     </Grid>
+                                    <!-- Hold mode: duration -->
+                                    <StackPanel Spacing="5" IsVisible="{Binding IsHeld}">
+                                        <TextBlock Text="{Binding $parent[Window].DataContext.Loc[Step_HoldDuration]}" FontSize="11" Foreground="#6b6b7a" FontWeight="SemiBold"/>
+                                        <NumericUpDown Value="{Binding HoldDurationMs}" Minimum="50" Maximum="30000"
+                                                       FormatString="0" Increment="100" ParsingNumberStyle="Integer"/>
+                                    </StackPanel>
                                 </StackPanel>
 
                                 <!-- PAUSE step body -->
@@ -121,7 +137,16 @@
                                         <ToggleButton Classes="modifier" IsChecked="{Binding IsRightClick}"  Content="{Binding $parent[Window].DataContext.Loc[Step_BtnRight]}"/>
                                         <ToggleButton Classes="modifier" IsChecked="{Binding IsMiddleClick}" Content="{Binding $parent[Window].DataContext.Loc[Step_BtnMiddle]}"/>
                                     </StackPanel>
-                                    <Grid ColumnDefinitions="*,12,*">
+                                    <!-- Normal / Maintenu toggle -->
+                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <ToggleButton Classes="modifier" IsChecked="{Binding !IsHeld, Mode=OneWay}"
+                                                      Content="{Binding $parent[Window].DataContext.Loc[Step_ModeNormal]}"
+                                                      Click="KeyModeNormal_Click"/>
+                                        <ToggleButton Classes="modifier" IsChecked="{Binding IsHeld}"
+                                                      Content="{Binding $parent[Window].DataContext.Loc[Step_ModeHeld]}"/>
+                                    </StackPanel>
+                                    <!-- Normal mode: iterations + delay -->
+                                    <Grid ColumnDefinitions="*,12,*" IsVisible="{Binding !IsHeld}">
                                         <StackPanel Grid.Column="0" Spacing="5">
                                             <TextBlock Text="{Binding $parent[Window].DataContext.Loc[Step_Iterations]}" FontSize="11" Foreground="#6b6b7a" FontWeight="SemiBold"/>
                                             <NumericUpDown Value="{Binding RepeatCount}" Minimum="1" Maximum="99"
@@ -134,6 +159,12 @@
                                                            FormatString="0" Increment="50" ParsingNumberStyle="Integer"/>
                                         </StackPanel>
                                     </Grid>
+                                    <!-- Hold mode: duration -->
+                                    <StackPanel Spacing="5" IsVisible="{Binding IsHeld}">
+                                        <TextBlock Text="{Binding $parent[Window].DataContext.Loc[Step_HoldDuration]}" FontSize="11" Foreground="#6b6b7a" FontWeight="SemiBold"/>
+                                        <NumericUpDown Value="{Binding HoldDurationMs}" Minimum="50" Maximum="30000"
+                                                       FormatString="0" Increment="100" ParsingNumberStyle="Integer"/>
+                                    </StackPanel>
                                 </StackPanel>
 
                                 <!-- MOUSE SCROLL step body -->
@@ -155,12 +186,12 @@
                                     <Grid ColumnDefinitions="*,12,*">
                                         <StackPanel Grid.Column="0" Spacing="5">
                                             <TextBlock Text="X (PX)" FontSize="11" Foreground="#6b6b7a" FontWeight="SemiBold"/>
-                                            <NumericUpDown Value="{Binding MoveX}" Minimum="-5000" Maximum="5000"
+                                            <NumericUpDown Value="{Binding MoveX}" Minimum="-100000" Maximum="100000"
                                                            FormatString="0" Increment="10" ParsingNumberStyle="Integer"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="2" Spacing="5">
                                             <TextBlock Text="Y (PX)" FontSize="11" Foreground="#6b6b7a" FontWeight="SemiBold"/>
-                                            <NumericUpDown Value="{Binding MoveY}" Minimum="-5000" Maximum="5000"
+                                            <NumericUpDown Value="{Binding MoveY}" Minimum="-100000" Maximum="100000"
                                                            FormatString="0" Increment="10" ParsingNumberStyle="Integer"/>
                                         </StackPanel>
                                     </Grid>
@@ -171,7 +202,8 @@
                                     </StackPanel>
                                 </StackPanel>
 
-                                <!-- SCREEN EFFECT step body -->
+
+<!-- SCREEN EFFECT step body -->
                                 <StackPanel IsVisible="{Binding IsScreenEffectStep}" Spacing="8">
                                     <TextBlock Text="{Binding $parent[Window].DataContext.Loc[Step_Effect]}" FontSize="11" Foreground="#6b6b7a" FontWeight="SemiBold"/>
                                     <ComboBox SelectedItem="{Binding EffectType}"
@@ -208,46 +240,46 @@
         <Border Grid.Row="3" Background="#2d2d35" Margin="14,0"/>
 
         <!-- Add step buttons -->
-        <StackPanel Grid.Row="4" Orientation="Horizontal" Spacing="8"
-                    HorizontalAlignment="Center" Margin="14,10,14,12"
-                    IsVisible="{Binding SelectedBinding, Converter={x:Static ObjectConverters.IsNotNull}}">
-            <Button Classes="ghost" Command="{Binding AddKeyStepCommand}" Padding="14,7" FontSize="12" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+        <WrapPanel Grid.Row="4" Orientation="Horizontal"
+                   HorizontalAlignment="Center" Margin="14,6,14,8"
+                   IsVisible="{Binding SelectedBinding, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <Button Classes="ghost" Command="{Binding AddKeyStepCommand}" Padding="14,7" FontSize="12" Margin="0,4,8,0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
                 <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <TextBlock Text="⌨" FontSize="13" VerticalAlignment="Center"/>
                     <TextBlock Text="{Binding Loc[Step_AddKey]}" FontSize="13" VerticalAlignment="Center"/>
                 </StackPanel>
             </Button>
-            <Button Classes="ghost" Command="{Binding AddPauseStepCommand}" Padding="14,8" FontSize="13" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+            <Button Classes="ghost" Command="{Binding AddPauseStepCommand}" Padding="14,8" FontSize="13" Margin="0,4,8,0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
                 <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <TextBlock Text="⏱" FontSize="13" VerticalAlignment="Center"/>
                     <TextBlock Text="{Binding Loc[Step_AddPause]}" FontSize="13" VerticalAlignment="Center"/>
                 </StackPanel>
             </Button>
-            <Button Classes="ghost" Command="{Binding AddMouseClickStepCommand}" Padding="14,8" FontSize="13" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+            <Button Classes="ghost" Command="{Binding AddMouseClickStepCommand}" Padding="14,8" FontSize="13" Margin="0,4,8,0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
                 <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <TextBlock Text="🖱" FontSize="13" VerticalAlignment="Center"/>
                     <TextBlock Text="{Binding Loc[Step_AddClick]}" FontSize="13" VerticalAlignment="Center"/>
                 </StackPanel>
             </Button>
-            <Button Classes="ghost" Command="{Binding AddMouseScrollStepCommand}" Padding="14,8" FontSize="13" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+            <Button Classes="ghost" Command="{Binding AddMouseScrollStepCommand}" Padding="14,8" FontSize="13" Margin="0,4,8,0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
                 <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <TextBlock Text="⊙" FontSize="13" VerticalAlignment="Center"/>
                     <TextBlock Text="{Binding Loc[Step_AddScroll]}" FontSize="13" VerticalAlignment="Center"/>
                 </StackPanel>
             </Button>
-            <Button Classes="ghost" Command="{Binding AddMouseMoveStepCommand}" Padding="14,8" FontSize="13" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+            <Button Classes="ghost" Command="{Binding AddMouseMoveStepCommand}" Padding="14,8" FontSize="13" Margin="0,4,8,0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
                 <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <TextBlock Text="↗" FontSize="13" VerticalAlignment="Center"/>
                     <TextBlock Text="{Binding Loc[Step_AddMove]}" FontSize="13" VerticalAlignment="Center"/>
                 </StackPanel>
             </Button>
-            <Button Classes="ghost" Command="{Binding AddScreenEffectStepCommand}" Padding="14,8" FontSize="13" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+<Button Classes="ghost" Command="{Binding AddScreenEffectStepCommand}" Padding="14,8" FontSize="13" Margin="0,4,0,0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
                 <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <TextBlock Text="🖥" FontSize="13" VerticalAlignment="Center"/>
                     <TextBlock Text="{Binding Loc[Step_AddEffect]}" FontSize="13" VerticalAlignment="Center"/>
                 </StackPanel>
             </Button>
-        </StackPanel>
+        </WrapPanel>
 
     </Grid>
 </UserControl>

@@ -102,7 +102,7 @@ file sealed class EffectRenderOp : ICustomDrawOperation
 
         using var lease = skia.Lease();
         var canvas = lease.SkCanvas;
-        canvas.Clear(SKColors.Black);
+        canvas.Clear(SKColors.Transparent);
 
         var dest = new SKRect(
             (float)_bounds.Left,
