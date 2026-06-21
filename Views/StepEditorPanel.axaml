@@ -228,52 +228,52 @@
         <Border Grid.Row="3" Background="#2d2d35" Margin="14,0"/>
 
         <!-- Add step buttons -->
-        <StackPanel Grid.Row="4" Orientation="Horizontal" Spacing="8"
-                    HorizontalAlignment="Center" Margin="14,10,14,12"
-                    IsVisible="{Binding SelectedBinding, Converter={x:Static ObjectConverters.IsNotNull}}">
-            <Button Classes="ghost" Command="{Binding AddKeyStepCommand}" Padding="14,7" FontSize="12" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+        <WrapPanel Grid.Row="4" Orientation="Horizontal"
+                   HorizontalAlignment="Center" Margin="14,6,14,8"
+                   IsVisible="{Binding SelectedBinding, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <Button Classes="ghost" Command="{Binding AddKeyStepCommand}" Padding="14,7" FontSize="12" Margin="0,4,8,0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
                 <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <TextBlock Text="⌨" FontSize="13" VerticalAlignment="Center"/>
                     <TextBlock Text="{Binding Loc[Step_AddKey]}" FontSize="13" VerticalAlignment="Center"/>
                 </StackPanel>
             </Button>
-            <Button Classes="ghost" Command="{Binding AddPauseStepCommand}" Padding="14,8" FontSize="13" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+            <Button Classes="ghost" Command="{Binding AddPauseStepCommand}" Padding="14,8" FontSize="13" Margin="0,4,8,0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
                 <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <TextBlock Text="⏱" FontSize="13" VerticalAlignment="Center"/>
                     <TextBlock Text="{Binding Loc[Step_AddPause]}" FontSize="13" VerticalAlignment="Center"/>
                 </StackPanel>
             </Button>
-            <Button Classes="ghost" Command="{Binding AddMouseClickStepCommand}" Padding="14,8" FontSize="13" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+            <Button Classes="ghost" Command="{Binding AddMouseClickStepCommand}" Padding="14,8" FontSize="13" Margin="0,4,8,0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
                 <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <TextBlock Text="🖱" FontSize="13" VerticalAlignment="Center"/>
                     <TextBlock Text="{Binding Loc[Step_AddClick]}" FontSize="13" VerticalAlignment="Center"/>
                 </StackPanel>
             </Button>
-            <Button Classes="ghost" Command="{Binding AddMouseScrollStepCommand}" Padding="14,8" FontSize="13" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+            <Button Classes="ghost" Command="{Binding AddMouseScrollStepCommand}" Padding="14,8" FontSize="13" Margin="0,4,8,0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
                 <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <TextBlock Text="⊙" FontSize="13" VerticalAlignment="Center"/>
                     <TextBlock Text="{Binding Loc[Step_AddScroll]}" FontSize="13" VerticalAlignment="Center"/>
                 </StackPanel>
             </Button>
-            <Button Classes="ghost" Command="{Binding AddMouseMoveStepCommand}" Padding="14,8" FontSize="13" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+            <Button Classes="ghost" Command="{Binding AddMouseMoveStepCommand}" Padding="14,8" FontSize="13" Margin="0,4,8,0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
                 <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <TextBlock Text="↗" FontSize="13" VerticalAlignment="Center"/>
                     <TextBlock Text="{Binding Loc[Step_AddMove]}" FontSize="13" VerticalAlignment="Center"/>
                 </StackPanel>
             </Button>
-            <Button Classes="ghost" Command="{Binding AddKeyHoldStepCommand}" Padding="14,8" FontSize="13" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+            <Button Classes="ghost" Command="{Binding AddKeyHoldStepCommand}" Padding="14,8" FontSize="13" Margin="0,4,8,0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
                 <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <TextBlock Text="⏷" FontSize="13" VerticalAlignment="Center"/>
                     <TextBlock Text="{Binding Loc[Step_AddHold]}" FontSize="13" VerticalAlignment="Center"/>
                 </StackPanel>
             </Button>
-            <Button Classes="ghost" Command="{Binding AddScreenEffectStepCommand}" Padding="14,8" FontSize="13" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+            <Button Classes="ghost" Command="{Binding AddScreenEffectStepCommand}" Padding="14,8" FontSize="13" Margin="0,4,0,0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
                 <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <TextBlock Text="🖥" FontSize="13" VerticalAlignment="Center"/>
                     <TextBlock Text="{Binding Loc[Step_AddEffect]}" FontSize="13" VerticalAlignment="Center"/>
                 </StackPanel>
             </Button>
-        </StackPanel>
+        </WrapPanel>
 
     </Grid>
 </UserControl>
