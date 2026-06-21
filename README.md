@@ -1,6 +1,6 @@
 # CrowdKeys
 
-**[crowdkeys.dev](https://crowdkeys.dev)** — v1.1.0
+**[crowdkeys.dev](https://crowdkeys.dev)** — v1.2.0
 
 CrowdKeys maps Twitch channel point rewards to keyboard/mouse actions on your PC. When a viewer redeems a reward, the app executes the configured action sequence automatically — no third-party software or browser extension needed.
 
@@ -26,7 +26,17 @@ Create one binding per reward. Each binding holds an ordered list of steps that 
 
 14 effects available: Horizontal Mirror, Split Screen ×2, Split Screen ×4, Blur, Screen Shake, Vertical Flip, Invert Colors, Grayscale, Pixelate, Zoom ×1.6, RGB Aberration, Glitch, CRT Scanlines, Zoom Pulse.
 
-Effects use DXGI Desktop Duplication (falls back to GDI). The overlay window is excluded from capture to avoid feedback loops.
+Effects run at ~60 fps using DXGI Desktop Duplication (falls back to GDI). The overlay window is excluded from DXGI capture to avoid feedback loops.
+
+A dedicated **CrowdKeys Preview** window (transparent, off-screen) can be captured by OBS via Window Capture with "Allow Transparency" enabled. Place it above your Game Capture source — it is transparent when idle and shows the effected frame during an active effect.
+
+### Effect playground
+
+Test any effect directly from the UI without triggering a Twitch reward: select an effect, set a duration, and click **Essayer**.
+
+### Process filter
+
+Filter key/mouse actions to a specific process. The target process list is populated automatically on startup and can be refreshed. A search box filters the list inline.
 
 ### Activity log
 Real-time log of all connection events, reward redemptions, and errors. Clearable.
