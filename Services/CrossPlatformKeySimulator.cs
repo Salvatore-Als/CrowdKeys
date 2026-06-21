@@ -47,12 +47,32 @@ public class CrossPlatformKeySimulator : IKeySimulator
 
     public void ClickMouse(MouseButton button, int repeatCount = 1)
     {
-        if (OperatingSystem.IsWindows())      
+        if (OperatingSystem.IsWindows())
             WindowsClickMouse(button, repeatCount);
-        else if (OperatingSystem.IsMacOS())   
+        else if (OperatingSystem.IsMacOS())
             MacOsClickMouse(button, repeatCount);
-        else                                 
+        else
             LinuxClickMouse(button, repeatCount);
+    }
+
+    public void MouseDown(MouseButton button)
+    {
+        if (OperatingSystem.IsWindows())
+            WindowsMouseDown(button);
+        else if (OperatingSystem.IsMacOS())
+            MacOsMouseDown(button);
+        else
+            LinuxMouseDown(button);
+    }
+
+    public void MouseUp(MouseButton button)
+    {
+        if (OperatingSystem.IsWindows())
+            WindowsMouseUp(button);
+        else if (OperatingSystem.IsMacOS())
+            MacOsMouseUp(button);
+        else
+            LinuxMouseUp(button);
     }
 
     public void ScrollMouse(ScrollDirection direction, int amount)
@@ -246,6 +266,30 @@ public class CrossPlatformKeySimulator : IKeySimulator
             SendInput(2, inputs, Marshal.SizeOf<INPUT>());
     }
 
+    private static void WindowsMouseDown(MouseButton button)
+    {
+        var flag = button switch
+        {
+            MouseButton.Right  => MOUSEEVENTF_RIGHTDOWN,
+            MouseButton.Middle => MOUSEEVENTF_MIDDLEDOWN,
+            _                  => MOUSEEVENTF_LEFTDOWN,
+        };
+        var input = new[] { new INPUT { type = INPUT_MOUSE, mi = new MOUSEINPUT { dwFlags = flag } } };
+        SendInput(1, input, Marshal.SizeOf<INPUT>());
+    }
+
+    private static void WindowsMouseUp(MouseButton button)
+    {
+        var flag = button switch
+        {
+            MouseButton.Right  => MOUSEEVENTF_RIGHTUP,
+            MouseButton.Middle => MOUSEEVENTF_MIDDLEUP,
+            _                  => MOUSEEVENTF_LEFTUP,
+        };
+        var input = new[] { new INPUT { type = INPUT_MOUSE, mi = new MOUSEINPUT { dwFlags = flag } } };
+        SendInput(1, input, Marshal.SizeOf<INPUT>());
+    }
+
     private static void WindowsScrollMouse(ScrollDirection direction, int amount)
     {
         var delta  = direction == ScrollDirection.Up ? WHEEL_DELTA * amount : -WHEEL_DELTA * amount;
@@ -437,6 +481,7 @@ public class CrossPlatformKeySimulator : IKeySimulator
             MouseButton.Middle => (kCGEventOtherMouseDown,  kCGEventOtherMouseUp,  2u),
             _                  => (kCGEventLeftMouseDown,   kCGEventLeftMouseUp,   0u),
         };
+    
         for (var i = 0; i < repeatCount; i++)
         {
             var down = CGEventCreateMouseEvent(0, downType, pos, btn);
@@ -445,6 +490,32 @@ public class CrossPlatformKeySimulator : IKeySimulator
             var up = CGEventCreateMouseEvent(0, upType, pos, btn);
             CGEventPost(kCGHIDEventTap, up); CFRelease(up);
         }
+    }
+
+    private static void MacOsMouseDown(MouseButton button)
+    {
+        var pos = GetMousePosition();
+        var (downType, btn) = button switch
+        {
+            MouseButton.Right  => (kCGEventRightMouseDown, 1u),
+            MouseButton.Middle => (kCGEventOtherMouseDown, 2u),
+            _                  => (kCGEventLeftMouseDown,  0u),
+        };
+        var ev = CGEventCreateMouseEvent(0, downType, pos, btn);
+        CGEventPost(kCGHIDEventTap, ev); CFRelease(ev);
+    }
+
+    private static void MacOsMouseUp(MouseButton button)
+    {
+        var pos = GetMousePosition();
+        var (upType, btn) = button switch
+        {
+            MouseButton.Right  => (kCGEventRightMouseUp, 1u),
+            MouseButton.Middle => (kCGEventOtherMouseUp, 2u),
+            _                  => (kCGEventLeftMouseUp,  0u),
+        };
+        var ev = CGEventCreateMouseEvent(0, upType, pos, btn);
+        CGEventPost(kCGHIDEventTap, ev); CFRelease(ev);
     }
 
     private static void MacOsScrollMouse(ScrollDirection direction, int amount)
@@ -469,17 +540,24 @@ public class CrossPlatformKeySimulator : IKeySimulator
 
     private static void LinuxKeyDown(IReadOnlyList<string> keys)
     {
-        try { System.Diagnostics.Process.Start("xdotool", $"keydown {string.Join("+", keys.Select(k => k.ToLower()))}"); } catch { }
+        try 
+        { 
+            System.Diagnostics.Process.Start("xdotool", $"keydown {string.Join("+", keys.Select(k => k.ToLower()))}"); 
+        } catch { }
     }
 
     private static void LinuxKeyUp(IReadOnlyList<string> keys)
     {
-        try { System.Diagnostics.Process.Start("xdotool", $"keyup {string.Join("+", keys.Select(k => k.ToLower()))}"); } catch { }
+        try 
+        { 
+            System.Diagnostics.Process.Start("xdotool", $"keyup {string.Join("+", keys.Select(k => k.ToLower()))}"); 
+        } catch { }
     }
 
     private static void LinuxPressCombo(IReadOnlyList<string> keys)
     {
-        try { 
+        try 
+        { 
             System.Diagnostics.Process.Start("xdotool", $"key {string.Join("+", keys.Select(k => k.ToLower()))}"); 
         }
         catch { }
@@ -495,6 +573,24 @@ public class CrossPlatformKeySimulator : IKeySimulator
             } 
             catch { }
         }
+    }
+
+    private static void LinuxMouseDown(MouseButton button)
+    {
+        var btn = button switch { MouseButton.Right => "3", MouseButton.Middle => "2", _ => "1" };
+        try 
+        { 
+            System.Diagnostics.Process.Start("xdotool", $"mousedown {btn}"); 
+        } catch { }
+    }
+
+    private static void LinuxMouseUp(MouseButton button)
+    {
+        var btn = button switch { MouseButton.Right => "3", MouseButton.Middle => "2", _ => "1" };
+        try 
+        { 
+            System.Diagnostics.Process.Start("xdotool", $"mouseup {btn}"); 
+        } catch { }
     }
 
     private static void LinuxScrollMouse(ScrollDirection direction, int amount)

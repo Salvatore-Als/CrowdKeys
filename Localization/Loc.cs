@@ -120,6 +120,8 @@ public sealed class Loc : INotifyPropertyChanged
             ["Step_AddEffect"]    = "Effet écran",
             ["Step_AddHold"]      = "Maintien",
             ["Step_HoldDuration"] = "DURÉE MAINTIEN (MS)",
+            ["Step_ModeNormal"]   = "NORMAL",
+            ["Step_ModeHeld"]     = "MAINTENU",
             ["Step_KeyPlaceholder"] = "Touche…",
 
             // Screen effects
@@ -221,6 +223,8 @@ public sealed class Loc : INotifyPropertyChanged
             ["Step_AddEffect"]    = "Screen effect",
             ["Step_AddHold"]      = "Hold",
             ["Step_HoldDuration"] = "HOLD DURATION (MS)",
+            ["Step_ModeNormal"]   = "Normal",
+            ["Step_ModeHeld"]     = "HELD",
             ["Step_KeyPlaceholder"] = "Key…",
 
             ["Effect_Mirror"]     = "Horizontal Mirror",
@@ -321,6 +325,8 @@ public sealed class Loc : INotifyPropertyChanged
             ["Step_AddEffect"]    = "Bildschirmeffekt",
             ["Step_AddHold"]      = "Halten",
             ["Step_HoldDuration"] = "HALTEDAUER (MS)",
+            ["Step_ModeNormal"]   = "Normal",
+            ["Step_ModeHeld"]     = "HALTEN",
             ["Step_KeyPlaceholder"] = "Taste…",
 
             ["Effect_Mirror"]     = "Horizontaler Spiegel",
@@ -421,6 +427,8 @@ public sealed class Loc : INotifyPropertyChanged
             ["Step_AddEffect"]    = "Effetto schermo",
             ["Step_AddHold"]      = "Tieni",
             ["Step_HoldDuration"] = "DURATA PRESSIONE (MS)",
+            ["Step_ModeNormal"]   = "NORMALE",
+            ["Step_ModeHeld"]     = "TIENI PREMUTO",
             ["Step_KeyPlaceholder"] = "Tasto…",
 
             ["Effect_Mirror"]     = "Specchio Orizzontale",

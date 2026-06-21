@@ -32,7 +32,12 @@ public partial class KeyStep : ObservableObject
 
     [ObservableProperty][NotifyPropertyChangedFor(nameof(DisplayText))] private decimal _delayBetweenMs = 0;
 
-    public bool CanConfigureDelay => RepeatCount > 1;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(DisplayText))]
+    [NotifyPropertyChangedFor(nameof(CanConfigureDelay))]
+    private bool _isHeld = false;
+
+    public bool CanConfigureDelay => !IsHeld && RepeatCount > 1;
 
     // Pause step fields
     [ObservableProperty][NotifyPropertyChangedFor(nameof(DisplayText))] private decimal _durationMs = 500;
@@ -179,6 +184,7 @@ public partial class KeyStep : ObservableObject
     public string DisplayText => Type switch
     {
         StepType.Pause        => $"Pause {(int)DurationMs}ms",
+        StepType.MouseClick when IsHeld => $"Hold Clic {MouseButton} • {(int)HoldDurationMs}ms",
         StepType.MouseClick   => $"Clic {MouseButton} ×{(int)RepeatCount}",
         StepType.MouseScroll  => $"Scroll {ScrollDirection} ×{(int)ScrollAmount}",
         StepType.MouseMove    => $"Move ({(int)MoveX},{(int)MoveY}px)",
@@ -200,6 +206,7 @@ public partial class KeyStep : ObservableObject
             ScreenEffectType.ZoomPulse           => "Pulse",
             _                                    => EffectType.ToString()
         }} • {(int)EffectDurationMs}ms",
+        StepType.Key when IsHeld => $"Hold {BuildKeyText()} • {(int)HoldDurationMs}ms",
         _ => BuildKeyText()
     };
 

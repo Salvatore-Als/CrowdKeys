@@ -93,6 +93,15 @@ public class RedemptionService
 
                     break;
 
+                case Models.StepType.Key when step.IsHeld:
+                    if (step.Keys.Count > 0 && step.HoldDurationMs > 0)
+                    {
+                        _keySimulator.KeyDown(step.Keys);
+                        await Task.Delay((int)step.HoldDurationMs);
+                        _keySimulator.KeyUp(step.Keys);
+                    }
+                    break;
+
                 case Models.StepType.Key:
                     var repeat = Math.Max(1, (int)step.RepeatCount);
                     for (var i = 0; i < repeat; i++)
@@ -101,7 +110,15 @@ public class RedemptionService
                         if (i < repeat - 1 && step.DelayBetweenMs > 0)
                             await Task.Delay((int)step.DelayBetweenMs);
                     }
+                    break;
 
+                case Models.StepType.MouseClick when step.IsHeld:
+                    if (step.HoldDurationMs > 0)
+                    {
+                        _keySimulator.MouseDown(step.MouseButton);
+                        await Task.Delay((int)step.HoldDurationMs);
+                        _keySimulator.MouseUp(step.MouseButton);
+                    }
                     break;
 
                 case Models.StepType.MouseClick:
@@ -112,7 +129,6 @@ public class RedemptionService
                         if (i < clickRepeat - 1 && step.DelayBetweenMs > 0)
                             await Task.Delay((int)step.DelayBetweenMs);
                     }
-
                     break;
 
                 case Models.StepType.MouseScroll:

@@ -9,6 +9,8 @@ public interface IKeySimulator
     void KeyDown(IReadOnlyList<string> keys);
     void KeyUp(IReadOnlyList<string> keys);
     void ClickMouse(MouseButton button, int repeatCount = 1);
+    void MouseDown(MouseButton button);
+    void MouseUp(MouseButton button);
     void ScrollMouse(ScrollDirection direction, int amount);
     void MoveMouse(int deltaX, int deltaY);
 }

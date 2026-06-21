@@ -630,14 +630,6 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void AddKeyHoldStep()
-    {
-        if (SelectedBinding is null) return;
-        SelectedBinding.Steps.Add(new KeyStep { Type = StepType.KeyHold, HoldDurationMs = 1000 });
-        SaveSettings();
-    }
-
-    [RelayCommand]
     private void AddScreenEffectStep()
     {
         if (SelectedBinding is null)
