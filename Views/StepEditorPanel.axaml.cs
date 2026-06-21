@@ -1,5 +1,7 @@
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using CrowdKeys.Models;
 using CrowdKeys.ViewModels;
@@ -13,6 +15,12 @@ public partial class StepEditorPanel : UserControl
     public StepEditorPanel()
     {
         InitializeComponent();
+    }
+
+    private void KeyModeNormal_Click(object? sender, RoutedEventArgs e)
+    {
+        if (sender is ToggleButton tb && tb.DataContext is KeyStep step)
+            step.IsHeld = false;
     }
 
     private async void DragHandle_PointerPressed(object? sender, PointerPressedEventArgs e)

@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 using CrowdKeys.Models;
 using CrowdKeys.ScreenEffects;
 
@@ -14,9 +16,14 @@ public class LogEntry
 
 public class RedemptionService
 {
+    [DllImport("user32.dll")] private static extern IntPtr GetForegroundWindow();
+    [DllImport("user32.dll")] private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
+
     private readonly IKeySimulator       _keySimulator;
     private readonly ScreenEffectService _screenEffects;
     private List<RedemptionBinding> _bindings = [];
+
+    public string TargetProcessName { get; set; } = "";
 
     public event EventHandler<LogEntry>? LogAdded;
 
@@ -28,6 +35,27 @@ public class RedemptionService
 
     public void UpdateBindings(IEnumerable<RedemptionBinding> bindings) =>
         _bindings = bindings.ToList();
+
+    private bool IsForegroundProcessMatch()
+    {
+        if (string.IsNullOrWhiteSpace(TargetProcessName))
+            return true;
+
+        if (!OperatingSystem.IsWindows())
+            return true;
+
+        try
+        {
+            var hwnd = GetForegroundWindow();
+            GetWindowThreadProcessId(hwnd, out var pid);
+            var proc = Process.GetProcessById((int)pid);
+            return proc.ProcessName.Equals(TargetProcessName, StringComparison.OrdinalIgnoreCase);
+        }
+        catch
+        {
+            return true;
+        }
+    }
 
     public async Task OnRewardReceivedAsync(string rewardName)
     {
@@ -47,6 +75,12 @@ public class RedemptionService
             return;
         }
 
+        if (!IsForegroundProcessMatch())
+        {
+            Log($"\"{rewardName}\" - ignoré ({TargetProcessName} pas en focus)", isMatch: false);
+            return;
+        }
+
         Log($"\"{rewardName}\" → {match.Steps.Count} étape(s)", isMatch: true);
 
         foreach (var step in match.Steps)
@@ -59,6 +93,15 @@ public class RedemptionService
 
                     break;
 
+                case Models.StepType.Key when step.IsHeld:
+                    if (step.Keys.Count > 0 && step.HoldDurationMs > 0)
+                    {
+                        _keySimulator.KeyDown(step.Keys);
+                        await Task.Delay((int)step.HoldDurationMs);
+                        _keySimulator.KeyUp(step.Keys);
+                    }
+                    break;
+
                 case Models.StepType.Key:
                     var repeat = Math.Max(1, (int)step.RepeatCount);
                     for (var i = 0; i < repeat; i++)
@@ -67,7 +110,15 @@ public class RedemptionService
                         if (i < repeat - 1 && step.DelayBetweenMs > 0)
                             await Task.Delay((int)step.DelayBetweenMs);
                     }
+                    break;
 
+                case Models.StepType.MouseClick when step.IsHeld:
+                    if (step.HoldDurationMs > 0)
+                    {
+                        _keySimulator.MouseDown(step.MouseButton);
+                        await Task.Delay((int)step.HoldDurationMs);
+                        _keySimulator.MouseUp(step.MouseButton);
+                    }
                     break;
 
                 case Models.StepType.MouseClick:
@@ -78,7 +129,6 @@ public class RedemptionService
                         if (i < clickRepeat - 1 && step.DelayBetweenMs > 0)
                             await Task.Delay((int)step.DelayBetweenMs);
                     }
-
                     break;
 
                 case Models.StepType.MouseScroll:
@@ -93,6 +143,15 @@ public class RedemptionService
                         break;
                     }
                     _screenEffects.Enqueue(step.EffectType, effectMs);
+                    break;
+
+                case Models.StepType.KeyHold:
+                    if (step.Keys.Count > 0 && step.HoldDurationMs > 0)
+                    {
+                        _keySimulator.KeyDown(step.Keys);
+                        await Task.Delay((int)step.HoldDurationMs);
+                        _keySimulator.KeyUp(step.Keys);
+                    }
                     break;
 
                 case Models.StepType.MouseMove:

@@ -104,6 +104,53 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public static string AppVersion => BuildInfo.Version;
 
+    // ── Target process filter ─────────────────────────────────────────────────
+
+    [ObservableProperty] private ObservableCollection<string> _availableProcesses = [];
+    [ObservableProperty] private ObservableCollection<string> _filteredProcesses = [];
+    [ObservableProperty] private string? _selectedTargetProcess;
+    [ObservableProperty] private string _processSearchText = "";
+
+    partial void OnProcessSearchTextChanged(string value) => ApplyProcessFilter();
+
+    private void ApplyProcessFilter()
+    {
+        var search = ProcessSearchText?.Trim() ?? "";
+        FilteredProcesses.Clear();
+        foreach (var p in AvailableProcesses)
+            if (string.IsNullOrEmpty(search) || p.Contains(search, StringComparison.OrdinalIgnoreCase))
+                FilteredProcesses.Add(p);
+    }
+
+    partial void OnSelectedTargetProcessChanged(string? value)
+    {
+        _redemption.TargetProcessName = value ?? "";
+        SaveSettings();
+    }
+
+    [RelayCommand]
+    private void ClearTargetProcess()
+    {
+        SelectedTargetProcess = null;
+    }
+
+    [RelayCommand]
+    private void RefreshProcesses()
+    {
+        var procs = System.Diagnostics.Process.GetProcesses()
+            .Select(p => p.ProcessName)
+            .Where(n => !string.IsNullOrWhiteSpace(n))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(n => n)
+            .ToList();
+
+        AvailableProcesses.Clear();
+        foreach (var p in procs)
+            AvailableProcesses.Add(p);
+
+        ApplyProcessFilter();
+    }
+
     // ── Log ───────────────────────────────────────────────────────────────────
 
     [ObservableProperty] private ObservableCollection<LogEntry> _log = [];
@@ -118,6 +165,9 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         _redemption = new RedemptionService(new CrossPlatformKeySimulator(), _screenEffects);
 
+        _screenEffects.OpenPreviewWindow();
+        RefreshProcesses();
+
         _redemption.LogAdded += (_, entry) =>
             Avalonia.Threading.Dispatcher.UIThread.Post(() => Log.Insert(0, entry));
 
@@ -130,7 +180,9 @@ public partial class MainWindowViewModel : ViewModelBase
         _eventSub.Disconnected += (_, _) =>
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
-                if (IsPaused) return;
+                if (IsPaused) 
+                    return;
+                
                 IsConnected = false;
                 StatusColor = "#3d3d4a";
                 ClearBindingOrphans();
@@ -632,6 +684,13 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private void ClearLog() => Log.Clear();
 
+    [ObservableProperty] private int _testEffectDurationMs = 3000;
+    [ObservableProperty] private ScreenEffectType _selectedTestEffect = ScreenEffectType.Mirror;
+
+    [RelayCommand]
+    private void TestSelectedEffect() =>
+        _screenEffects.Enqueue(SelectedTestEffect, TestEffectDurationMs);
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private void SyncBindings() => _redemption.UpdateBindings(Bindings);
@@ -670,6 +729,8 @@ public partial class MainWindowViewModel : ViewModelBase
             Bindings      = new ObservableCollection<RedemptionBinding>(s.Bindings);
             SyncBindings();
             HasCredentials = !string.IsNullOrEmpty(_accessToken);
+            SelectedTargetProcess = string.IsNullOrEmpty(s.TargetProcessName) ? null : s.TargetProcessName;
+            _redemption.TargetProcessName = s.TargetProcessName;
         }
         catch { }
     }
@@ -700,7 +761,10 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private void DeleteGlobalConfig()
     {
-        try { File.Delete(GlobalConfigPath); } catch { }
+        try 
+        { 
+            File.Delete(GlobalConfigPath); 
+        } catch { }
     }
 
     // ── Auto-save ─────────────────────────────────────────────────────────────
@@ -756,10 +820,11 @@ public partial class MainWindowViewModel : ViewModelBase
             File.WriteAllText(ProfilePath, JsonSerializer.Serialize(
                 new AppSettings
                 {
-                    AccessToken  = _accessToken,
-                    RefreshToken = _refreshToken,
-                    LoginName    = LoginName,
-                    Bindings     = [.. Bindings],
+                    AccessToken       = _accessToken,
+                    RefreshToken      = _refreshToken,
+                    LoginName         = LoginName,
+                    Bindings          = [.. Bindings],
+                    TargetProcessName = SelectedTargetProcess ?? "",
                 },
                 new JsonSerializerOptions { WriteIndented = true }));
         }

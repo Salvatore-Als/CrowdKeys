@@ -1,0 +1,13 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="using:CrowdKeys.Views"
+        x:Class="CrowdKeys.Views.PreviewWindow"
+        Title="CrowdKeys Preview"
+        Width="960"
+        Height="540"
+        ShowInTaskbar="False"
+        ShowActivated="False"
+        Background="Transparent"
+        TransparencyLevelHint="Transparent">
+    <local:EffectCanvas x:Name="EffectView"/>
+</Window>
