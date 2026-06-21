@@ -5,8 +5,9 @@
         Title="CrowdKeys Preview"
         Width="960"
         Height="540"
-        ShowInTaskbar="True"
+        ShowInTaskbar="False"
         ShowActivated="False"
+        WindowStartupLocation="Manual"
         Background="Transparent"
         TransparencyLevelHint="Transparent">
     <local:EffectCanvas x:Name="EffectView"/>

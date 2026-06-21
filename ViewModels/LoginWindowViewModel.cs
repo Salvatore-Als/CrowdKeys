@@ -24,7 +24,9 @@ public partial class LoginWindowViewModel : ViewModelBase
                ?? LocSingleton.Languages[0];
         set
         {
-            if (value is null) return;
+            if (value is null) 
+                return;
+            
             LocSingleton.Instance.SetLanguage(value.Code);
             OnPropertyChanged();
         }

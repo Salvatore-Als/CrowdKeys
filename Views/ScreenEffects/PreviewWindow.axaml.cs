@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Controls;
 using CrowdKeys.ScreenEffects.Effects;
 using SkiaSharp;
@@ -9,6 +10,8 @@ public partial class PreviewWindow : Window
     public PreviewWindow()
     {
         InitializeComponent();
+        // Off-screen so OBS can still Window Capture it without it floating on the streamer's desktop
+        Position = new PixelPoint(-32000, -32000);
     }
 
     public void StartEffect(IScreenEffect effect, SKBitmap frame) =>

@@ -738,7 +738,10 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private void DeleteGlobalConfig()
     {
-        try { File.Delete(GlobalConfigPath); } catch { }
+        try 
+        { 
+            File.Delete(GlobalConfigPath); 
+        } catch { }
     }
 
     // ── Auto-save ─────────────────────────────────────────────────────────────
