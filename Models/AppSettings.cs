@@ -6,5 +6,6 @@ public class AppSettings
     public string RefreshToken { get; set; } = "";
     public string LoginName    { get; set; } = "";
     public List<RedemptionBinding> Bindings { get; set; } = [];
-    public string TargetProcessName { get; set; } = "";
+    public string TargetProcessName     { get; set; } = "";
+    public int    SelectedMonitorIndex { get; set; } = 0;
 }

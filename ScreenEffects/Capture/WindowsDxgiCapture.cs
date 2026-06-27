@@ -110,6 +110,7 @@ public class WindowsDxgiCapture : IScreenCapture
     IntPtr _device, _context, _duplication, _stagingTex;
     int    _width, _height;
     byte[] _rowBuf = Array.Empty<byte>();
+    int    _monitorIndex = 0;
 
     AcquireFrameFn? _acquire;
     ReleaseFrameFn? _releaseFrame;
@@ -131,6 +132,19 @@ public class WindowsDxgiCapture : IScreenCapture
         if (D3D11CreateDevice(IntPtr.Zero, 1, IntPtr.Zero, 0, IntPtr.Zero, 0, 7,
             out _device, out _, out _context) < 0) return;
 
+        InitOutput();
+    }
+
+    void InitOutput()
+    {
+        Release(ref _duplication);
+        Release(ref _stagingTex);
+        _acquire      = null;
+        _releaseFrame = null;
+        IsSupported   = false;
+
+        if (_device == IntPtr.Zero) return;
+
         var dxgiDev = QI(_device, IID_IDXGIDevice);
         if (dxgiDev == IntPtr.Zero) return;
 
@@ -138,7 +152,7 @@ public class WindowsDxgiCapture : IScreenCapture
         Release(ref dxgiDev);
         if (adapter == IntPtr.Zero) return;
 
-        Vtable<EnumOutputsFn>(adapter, 7)(adapter, 0, out var output);
+        Vtable<EnumOutputsFn>(adapter, 7)(adapter, _monitorIndex, out var output);
         Release(ref adapter);
         if (output == IntPtr.Zero) return;
 
@@ -150,8 +164,11 @@ public class WindowsDxgiCapture : IScreenCapture
         Release(ref output1);
         if (hr < 0) return;
 
-        _width  = GetSystemMetrics(0);
-        _height = GetSystemMetrics(1);
+        if (_width == 0 || _height == 0)
+        {
+            _width  = GetSystemMetrics(0);
+            _height = GetSystemMetrics(1);
+        }
         _rowBuf = new byte[_width * 4];
 
         var desc = new Tex2DDesc
@@ -225,6 +242,14 @@ public class WindowsDxgiCapture : IScreenCapture
             Release(ref res);
             _releaseFrame!(_duplication);
         }
+    }
+
+    public void SetMonitor(int monitorIndex, int x, int y, int width, int height)
+    {
+        _monitorIndex = monitorIndex;
+        _width  = width;
+        _height = height;
+        try { InitOutput(); } catch { IsSupported = false; }
     }
 
     void Reinit()

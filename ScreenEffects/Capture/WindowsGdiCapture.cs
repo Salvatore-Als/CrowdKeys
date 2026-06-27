@@ -6,8 +6,7 @@ namespace CrowdKeys.ScreenEffects;
 public class WindowsGdiCapture : IScreenCapture
 {
     public bool IsSupported => true;
-    public (int width, int height) ScreenSize =>
-        (GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN));
+    public (int width, int height) ScreenSize => (CaptureWidth, CaptureHeight);
 
     [DllImport("user32.dll")] static extern IntPtr GetDesktopWindow();
     [DllImport("user32.dll")] static extern IntPtr GetDC(IntPtr hWnd);
@@ -44,14 +43,26 @@ public class WindowsGdiCapture : IScreenCapture
         public uint[] bmiColors;
     }
 
-    // Reusable pixel buffer — avoids per-frame allocation in CaptureInto.
+    private int _srcX, _srcY;
+    private int _captureW, _captureH; // 0 = use primary screen metrics
+
+    private int CaptureWidth  => _captureW > 0 ? _captureW : GetSystemMetrics(SM_CXSCREEN);
+    private int CaptureHeight => _captureH > 0 ? _captureH : GetSystemMetrics(SM_CYSCREEN);
+
     private byte[]? _pixelBuf;
+
+    public void SetMonitor(int monitorIndex, int x, int y, int width, int height)
+    {
+        _srcX     = x;
+        _srcY     = y;
+        _captureW = width;
+        _captureH = height;
+    }
 
     public SKBitmap? Capture()
     {
-        int w = GetSystemMetrics(SM_CXSCREEN);
-        int h = GetSystemMetrics(SM_CYSCREEN);
-
+        int w = CaptureWidth;
+        int h = CaptureHeight;
         var bmp = new SKBitmap(w, h, SKColorType.Bgra8888, SKAlphaType.Opaque);
         CaptureInto(bmp);
         return bmp;
@@ -70,7 +81,7 @@ public class WindowsGdiCapture : IScreenCapture
 
         try
         {
-            BitBlt(memDC, 0, 0, w, h, srcDC, 0, 0, SRCCOPY);
+            BitBlt(memDC, 0, 0, w, h, srcDC, _srcX, _srcY, SRCCOPY);
 
             var bmi = new BITMAPINFO
             {

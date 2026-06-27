@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Threading;
 using CrowdKeys.Models;
 using CrowdKeys.ScreenEffects.Effects;
@@ -9,15 +10,25 @@ namespace CrowdKeys.ScreenEffects;
 public class ScreenEffectService : IDisposable
 {
     private readonly IScreenCapture _capture;
-    private EffectOverlayWindow?    _overlay;
-    private PreviewWindow?          _previewWindow;
+    private readonly IScreenCapture _staticCapture;
+
+    public event Action? PreviewClosed;
+    public event Action? EffectBypassed;
+
+    private EffectOverlayWindow?  _overlay;
+    private PreviewWindow?        _previewWindow;
+    private MonitorBorderOverlay  _borderOverlay = new();
+
+    // monitor state (physical pixels + scaling for logical sizing)
+    private bool   _monitorSet = false;
+    private int    _monX, _monY, _monW, _monH;
+    private double _monScaling = 1.0;
 
     private readonly SemaphoreSlim _queueLock = new(1, 1);
     private readonly Queue<(ScreenEffectType type, int durationMs)> _queue = new();
     private readonly CancellationTokenSource _disposeCts = new();
+    private volatile CancellationTokenSource _effectCts  = new();
     private bool _processing;
-
-    private readonly IScreenCapture _staticCapture; // GDI — for frozen-frame effects
 
     public ScreenEffectService()
     {
@@ -34,6 +45,37 @@ public class ScreenEffectService : IDisposable
         }
     }
 
+    private string _monitorLabel = "";
+
+    public void SetMonitor(int index, int x, int y, int width, int height, double scaling, string label = "")
+    {
+        _monitorSet   = true;
+        _monX         = x;
+        _monY         = y;
+        _monW         = width;
+        _monH         = height;
+        _monScaling   = scaling;
+        _monitorLabel = label;
+
+        _capture.SetMonitor(index, x, y, width, height);
+        _staticCapture.SetMonitor(index, x, y, width, height);
+
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (_overlay is { IsVisible: true })
+                _overlay.PositionOnScreen(x, y, width, height, scaling);
+
+            ShowIndicator(x, y, width, height, scaling, label);
+        });
+    }
+
+    private void ShowIndicator(int x, int y, int width, int height, double scaling, string label)
+    {
+        _borderOverlay.ShowOnScreen(x, y, width, height, scaling, label);
+        Task.Delay(2500).ContinueWith(_ =>
+            Dispatcher.UIThread.Post(() => _borderOverlay.CloseAll()));
+    }
+
     public void OpenPreviewWindow()
     {
         Dispatcher.UIThread.Post(() =>
@@ -41,6 +83,11 @@ public class ScreenEffectService : IDisposable
             if (_previewWindow is null)
             {
                 _previewWindow = new PreviewWindow();
+                _previewWindow.Closed += (_, _) =>
+                {
+                    _previewWindow = null;
+                    PreviewClosed?.Invoke();
+                };
                 _previewWindow.Show();
             }
         });
@@ -51,10 +98,25 @@ public class ScreenEffectService : IDisposable
         if (!_capture.IsSupported)
             return;
 
+        if (_previewWindow is null)
+        {
+            EffectBypassed?.Invoke();
+            return;
+        }
+
         lock (_queue)
             _queue.Enqueue((effectType, durationMs));
 
         _ = EnsureProcessingAsync();
+    }
+
+    public void StopAll()
+    {
+        lock (_queue)
+            _queue.Clear();
+
+        var old = Interlocked.Exchange(ref _effectCts, new CancellationTokenSource());
+        old.Cancel();
     }
 
     private async Task EnsureProcessingAsync()
@@ -86,12 +148,20 @@ public class ScreenEffectService : IDisposable
                 item = _queue.Dequeue();
             }
 
+            var effectCts = _effectCts; // snapshot before await
+            using var linked = CancellationTokenSource.CreateLinkedTokenSource(
+                effectCts.Token, _disposeCts.Token);
+
             try
             {
-                await PlayOneAsync(item.type, item.durationMs, _disposeCts.Token);
+                await PlayOneAsync(item.type, item.durationMs, linked.Token);
             }
-            catch (OperationCanceledException) { return; }
-            catch { /* swallow per-item errors */ }
+            catch (OperationCanceledException)
+            {
+                _processing = false; // fix: was never reset on early exit
+                return;
+            }
+            catch { /* swallow per-item errors, continue queue */ }
         }
     }
 
@@ -127,7 +197,6 @@ public class ScreenEffectService : IDisposable
         await PlayLiveAsync(effect, durationMs, ct);
     }
 
-    // Static: capture once (GDI), render that frozen frame for the duration.
     private async Task PlayStaticAsync(IScreenEffect effect, int durationMs, CancellationToken ct)
     {
         var frame = _staticCapture.Capture();
@@ -137,6 +206,8 @@ public class ScreenEffectService : IDisposable
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
             _overlay ??= new EffectOverlayWindow();
+            if (_monitorSet)
+                _overlay.PositionOnScreen(_monX, _monY, _monW, _monH, _monScaling);
             _overlay.StartEffect(effect, frame);
             _overlay.Show();
 
@@ -158,13 +229,10 @@ public class ScreenEffectService : IDisposable
                 _previewWindow?.StopEffect();
             }, DispatcherPriority.Render);
 
-            // No explicit Dispose — SKBitmap finalizer frees native memory safely.
-            // Disposing while Skia render ops may still reference the bitmap causes AccessViolationException.
             GC.KeepAlive(frame);
         }
     }
 
-    // Live: double-buffer capture loop at ~30fps, effect renders the latest frame.
     private async Task PlayLiveAsync(IScreenEffect effect, int durationMs, CancellationToken ct)
     {
         var (w, h) = _capture.ScreenSize;
@@ -196,9 +264,9 @@ public class ScreenEffectService : IDisposable
                     Volatile.Write(ref readIdx, writeIdx);
                     writeIdx ^= 1;
                 }
-                catch (OperationCanceledException) 
-                { 
-                    return; 
+                catch (OperationCanceledException)
+                {
+                    return;
                 }
             }
         }, captureCts.Token);
@@ -206,6 +274,8 @@ public class ScreenEffectService : IDisposable
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
             _overlay ??= new EffectOverlayWindow();
+            if (_monitorSet)
+                _overlay.PositionOnScreen(_monX, _monY, _monW, _monH, _monScaling);
             _overlay.StartEffectLive(effect, () => buffers[Volatile.Read(ref readIdx)]);
             _overlay.Show();
 
@@ -229,8 +299,6 @@ public class ScreenEffectService : IDisposable
                 _previewWindow?.StopEffect();
             }, DispatcherPriority.Render);
 
-            // No explicit Dispose — let GC/finalizer free native memory.
-            // Disposing while Skia render ops reference the bitmaps causes AccessViolationException.
             GC.KeepAlive(buffers[0]);
             GC.KeepAlive(buffers[1]);
         }
@@ -246,6 +314,7 @@ public class ScreenEffectService : IDisposable
         {
             _overlay?.Close();
             _previewWindow?.Close();
+            _borderOverlay.CloseAll();
         });
     }
 }

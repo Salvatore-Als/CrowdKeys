@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using Avalonia;
 using Avalonia.Controls;
 using CrowdKeys.ScreenEffects.Effects;
 using SkiaSharp;
@@ -40,6 +41,15 @@ public partial class EffectOverlayWindow : Window
         // Exclude from DXGI Desktop Duplication captures — DXGI shows content
         // behind this window instead, so the live capture loop sees the game only.
         SetWindowDisplayAffinity(hwnd, WDA_EXCLUDEFROMCAPTURE);
+    }
+
+    public void PositionOnScreen(int x, int y, int width, int height, double scaling)
+    {
+        WindowState = Avalonia.Controls.WindowState.Normal;
+        Position    = new PixelPoint(x, y);
+        Width       = width  / scaling;
+        Height      = height / scaling;
+        WindowState = Avalonia.Controls.WindowState.FullScreen;
     }
 
     public void StartEffect(IScreenEffect effect, SKBitmap frame) =>
