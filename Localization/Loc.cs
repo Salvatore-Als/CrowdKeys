@@ -124,6 +124,10 @@ public sealed class Loc : INotifyPropertyChanged
             ["Step_ModeHeld"]     = "MAINTENU",
             ["Step_KeyPlaceholder"] = "Touche…",
 
+            // Monitor selector
+            ["Monitor_Screen"]    = "Écran",
+            ["Monitor_Label"]     = "Écran :",
+
             // Screen effects
             ["Effect_Mirror"]     = "Miroir Horizontal",
             ["Effect_Split2"]     = "Split Écran x2",
@@ -158,6 +162,8 @@ public sealed class Loc : INotifyPropertyChanged
             ["Log_ReconnectAbandoned"]      = "Reconnexion abandonnée après 5 tentatives.",
             ["Log_RewardsLoaded"]           = "{0} reward(s) chargé(s).",
             ["Log_RewardsError"]            = "Erreur chargement rewards : {0}",
+            ["Log_PreviewClosed"]           = "⚠ La fenêtre de prévisualisation a été fermée. Les effets écran ne seront pas visibles dans l'app.",
+            ["Log_EffectBypassed"]          = "⚠ Effet ignoré : la fenêtre de prévisualisation est fermée.",
         },
 
         ["en"] = new()
@@ -227,6 +233,9 @@ public sealed class Loc : INotifyPropertyChanged
             ["Step_ModeHeld"]     = "HELD",
             ["Step_KeyPlaceholder"] = "Key…",
 
+            ["Monitor_Screen"]    = "Screen",
+            ["Monitor_Label"]     = "Screen:",
+
             ["Effect_Mirror"]     = "Horizontal Mirror",
             ["Effect_Split2"]     = "Split Screen x2",
             ["Effect_Split4"]     = "Split Screen x4",
@@ -260,6 +269,8 @@ public sealed class Loc : INotifyPropertyChanged
             ["Log_ReconnectAbandoned"]      = "Reconnection abandoned after 5 attempts.",
             ["Log_RewardsLoaded"]           = "{0} reward(s) loaded.",
             ["Log_RewardsError"]            = "Error loading rewards: {0}",
+            ["Log_PreviewClosed"]           = "⚠ Preview window was closed. Screen effects won't be visible in the app.",
+            ["Log_EffectBypassed"]          = "⚠ Effect skipped: preview window is closed.",
         },
 
         ["de"] = new()
@@ -329,6 +340,9 @@ public sealed class Loc : INotifyPropertyChanged
             ["Step_ModeHeld"]     = "HALTEN",
             ["Step_KeyPlaceholder"] = "Taste…",
 
+            ["Monitor_Screen"]    = "Bildschirm",
+            ["Monitor_Label"]     = "Bildschirm:",
+
             ["Effect_Mirror"]     = "Horizontaler Spiegel",
             ["Effect_Split2"]     = "Split Bildschirm x2",
             ["Effect_Split4"]     = "Split Bildschirm x4",
@@ -362,6 +376,8 @@ public sealed class Loc : INotifyPropertyChanged
             ["Log_ReconnectAbandoned"]      = "Verbindungswiederherstellung nach 5 Versuchen aufgegeben.",
             ["Log_RewardsLoaded"]           = "{0} Belohnung(en) geladen.",
             ["Log_RewardsError"]            = "Fehler beim Laden der Belohnungen: {0}",
+            ["Log_PreviewClosed"]           = "⚠ Vorschaufenster wurde geschlossen. Bildschirmeffekte sind in der App nicht sichtbar.",
+            ["Log_EffectBypassed"]          = "⚠ Effekt übersprungen: Vorschaufenster ist geschlossen.",
         },
 
         ["it"] = new()
@@ -431,6 +447,9 @@ public sealed class Loc : INotifyPropertyChanged
             ["Step_ModeHeld"]     = "TIENI PREMUTO",
             ["Step_KeyPlaceholder"] = "Tasto…",
 
+            ["Monitor_Screen"]    = "Schermo",
+            ["Monitor_Label"]     = "Schermo:",
+
             ["Effect_Mirror"]     = "Specchio Orizzontale",
             ["Effect_Split2"]     = "Schermo Diviso x2",
             ["Effect_Split4"]     = "Schermo Diviso x4",
@@ -464,6 +483,8 @@ public sealed class Loc : INotifyPropertyChanged
             ["Log_ReconnectAbandoned"]      = "Riconnessione abbandonata dopo 5 tentativi.",
             ["Log_RewardsLoaded"]           = "{0} ricompensa/e caricata/e.",
             ["Log_RewardsError"]            = "Errore caricamento ricompense: {0}",
+            ["Log_PreviewClosed"]           = "⚠ La finestra di anteprima è stata chiusa. Gli effetti schermo non saranno visibili nell'app.",
+            ["Log_EffectBypassed"]          = "⚠ Effetto ignorato: la finestra di anteprima è chiusa.",
         },
     };
 }

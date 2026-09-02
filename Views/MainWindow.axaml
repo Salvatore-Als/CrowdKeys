@@ -365,21 +365,33 @@
                 BorderBrush="#2d2d35" BorderThickness="0,1,0,0"
                 Padding="16,5">
             <Grid ColumnDefinitions="Auto,*,Auto,8,Auto">
-                <!-- Language selector -->
-                <ComboBox Grid.Column="0"
-                          ItemsSource="{x:Static loc:Loc.Languages}"
-                          SelectedItem="{Binding SelectedLanguage}"
-                          FontSize="12"
-                          MinWidth="130"
-                          Background="Transparent"
-                          BorderThickness="0"
-                          Padding="4,2">
-                    <ComboBox.ItemTemplate>
-                        <DataTemplate>
-                            <TextBlock Text="{Binding Label}" FontSize="12"/>
-                        </DataTemplate>
-                    </ComboBox.ItemTemplate>
-                </ComboBox>
+                <!-- Language + Screen selectors -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                    <ComboBox ItemsSource="{x:Static loc:Loc.Languages}"
+                              SelectedItem="{Binding SelectedLanguage}"
+                              FontSize="12"
+                              MinWidth="130"
+                              Background="Transparent"
+                              BorderThickness="0"
+                              Padding="4,2">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Label}" FontSize="12"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+
+                    <Border Width="1" Background="#2d2d35" Margin="0,4"/>
+
+                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Loc[Monitor_Label]}" FontSize="12" Foreground="#6b6b7a" VerticalAlignment="Center"/>
+                        <ComboBox ItemsSource="{Binding AvailableMonitors}"
+                                  SelectedIndex="{Binding SelectedMonitorIndex}"
+                                  FontSize="12"
+                                  MinWidth="110"
+                                  Padding="6,2"/>
+                    </StackPanel>
+                </StackPanel>
 
                 <!-- Target process filter -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
