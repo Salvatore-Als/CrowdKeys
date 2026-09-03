@@ -1,6 +1,6 @@
 # CrowdKeys
 
-**[crowdkeys.dev](https://crowdkeys.dev)** — v1.2.0
+**[crowdkeys.dev](https://crowdkeys.dev)** — v1.3.0
 
 CrowdKeys maps Twitch channel point rewards to keyboard/mouse actions on your PC. When a viewer redeems a reward, the app executes the configured action sequence automatically — no third-party software or browser extension needed.
 
@@ -21,12 +21,16 @@ Create one binding per reward. Each binding holds an ordered list of steps that 
 | **Mouse scroll** | Scroll up or down by a configurable number of ticks. |
 | **Mouse move** | Relative pixel movement from current cursor position. Optional speed (ms). |
 | **Screen effect** | Full-screen visual effect rendered on top of all windows for a set duration. Windows only. |
+| **Image effect** | Display an image on screen for a set duration. |
+| **Sound effect** | Play a sound file when the reward is triggered. |
 
 ### Screen effects (Windows only)
 
 14 effects available: Horizontal Mirror, Split Screen ×2, Split Screen ×4, Blur, Screen Shake, Vertical Flip, Invert Colors, Grayscale, Pixelate, Zoom ×1.6, RGB Aberration, Glitch, CRT Scanlines, Zoom Pulse.
 
-Effects run at ~60 fps using DXGI Desktop Duplication (falls back to GDI). The overlay window is excluded from DXGI capture to avoid feedback loops.
+Effects run at ~60 fps using DXGI Desktop Duplication (falls back to GDI). The overlay window is excluded from DXGI capture to avoid feedback loops. CrowdKeys correctly detects the screen resolution and targets the configured monitor on multi-monitor setups.
+
+Performance has been optimized to reduce lag. A small amount of lag may still occur on certain effects; further improvements are planned.
 
 A dedicated **CrowdKeys Preview** window (transparent, off-screen) can be captured by OBS via Window Capture with "Allow Transparency" enabled. Place it above your Game Capture source — it is transparent when idle and shows the effected frame during an active effect.
 
@@ -46,6 +50,9 @@ On disconnection, the app retries automatically with exponential backoff (up to 
 
 ### Pause / Resume
 Pause the listener without disconnecting. Resume reconnects to the EventSub stream.
+
+### Multi-screen support
+On setups with multiple monitors, CrowdKeys can be configured to target a specific screen for effects and overlays.
 
 ### Multi-language
 UI available in **English**, **French**, **German**, and **Italian**. Language switches live — no restart needed. Selector available on both the login screen and the main window.
