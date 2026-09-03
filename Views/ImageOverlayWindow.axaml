@@ -1,0 +1,17 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="CrowdKeys.Views.ImageOverlayWindow"
+        Title="CrowdKeys Image"
+        WindowDecorations="None"
+        Topmost="True"
+        ShowInTaskbar="False"
+        ShowActivated="False"
+        CanResize="False"
+        Focusable="False"
+        IsHitTestVisible="False"
+        Background="Transparent"
+        TransparencyLevelHint="Transparent">
+    <Grid Margin="40">
+        <Image x:Name="ImageView" Stretch="Uniform" MaxWidth="420" MaxHeight="420"/>
+    </Grid>
+</Window>

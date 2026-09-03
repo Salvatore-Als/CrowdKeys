@@ -2,7 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace CrowdKeys.Models;
 
-public enum StepType { Key, Pause, MouseClick, MouseScroll, MouseMove, ScreenEffect, KeyHold }
+public enum StepType { Key, Pause, MouseClick, MouseScroll, MouseMove, ScreenEffect, KeyHold, PlaySound, ShowImage }
 public enum MouseButton { Left, Right, Middle }
 public enum ScrollDirection { Up, Down }
 
@@ -16,6 +16,8 @@ public partial class KeyStep : ObservableObject
     [NotifyPropertyChangedFor(nameof(IsMouseMoveStep))]
     [NotifyPropertyChangedFor(nameof(IsScreenEffectStep))]
     [NotifyPropertyChangedFor(nameof(IsKeyHoldStep))]
+    [NotifyPropertyChangedFor(nameof(IsPlaySoundStep))]
+    [NotifyPropertyChangedFor(nameof(IsShowImageStep))]
     [NotifyPropertyChangedFor(nameof(DisplayText))]
     private StepType _type = StepType.Key;
 
@@ -79,6 +81,43 @@ public partial class KeyStep : ObservableObject
     // Key hold fields
     [ObservableProperty][NotifyPropertyChangedFor(nameof(DisplayText))] private decimal _holdDurationMs = 1000;
 
+    // Play sound fields
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(SoundFileName))]
+    [NotifyPropertyChangedFor(nameof(DisplayText))]
+    private string _soundFilePath = "";
+
+    [ObservableProperty][NotifyPropertyChangedFor(nameof(DisplayText))] private decimal _soundVolume = 100;
+
+    partial void OnSoundVolumeChanged(decimal value)
+    {
+        if (value < 0)
+            SoundVolume = 0;
+        else if (value > 100)
+            SoundVolume = 100;
+    }
+
+    public string SoundFileName => string.IsNullOrWhiteSpace(SoundFilePath) ? "" : Path.GetFileName(SoundFilePath);
+
+    // Show image fields
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ImageFileName))]
+    [NotifyPropertyChangedFor(nameof(DisplayText))]
+    private string _imageFilePath = "";
+
+    [ObservableProperty][NotifyPropertyChangedFor(nameof(DisplayText))] private ImagePosition _imagePosition = ImagePosition.Center;
+    [ObservableProperty][NotifyPropertyChangedFor(nameof(DisplayText))] private decimal _imageDurationMs = 3000;
+
+    partial void OnImageDurationMsChanged(decimal value)
+    {
+        if (value < 100)
+            ImageDurationMs = 100;
+        else if (value > 30_000)
+            ImageDurationMs = 30_000;
+    }
+
+    public string ImageFileName => string.IsNullOrWhiteSpace(ImageFilePath) ? "" : Path.GetFileName(ImageFilePath);
+
     public bool IsKeyStep          => Type == StepType.Key;
     public bool IsPauseStep        => Type == StepType.Pause;
     public bool IsMouseClickStep   => Type == StepType.MouseClick;
@@ -86,6 +125,8 @@ public partial class KeyStep : ObservableObject
     public bool IsMouseMoveStep    => Type == StepType.MouseMove;
     public bool IsScreenEffectStep => Type == StepType.ScreenEffect;
     public bool IsKeyHoldStep      => Type == StepType.KeyHold;
+    public bool IsPlaySoundStep    => Type == StepType.PlaySound;
+    public bool IsShowImageStep    => Type == StepType.ShowImage;
 
     public bool IsLeftClick
     {
@@ -207,6 +248,8 @@ public partial class KeyStep : ObservableObject
             _                                    => EffectType.ToString()
         }} • {(int)EffectDurationMs}ms",
         StepType.Key when IsHeld => $"Hold {BuildKeyText()} • {(int)HoldDurationMs}ms",
+        StepType.PlaySound    => $"Son {(string.IsNullOrEmpty(SoundFileName) ? "(vide)" : SoundFileName)} • {(int)SoundVolume}%",
+        StepType.ShowImage    => $"Image {(string.IsNullOrEmpty(ImageFileName) ? "(vide)" : ImageFileName)} • {(int)ImageDurationMs}ms",
         _ => BuildKeyText()
     };
 

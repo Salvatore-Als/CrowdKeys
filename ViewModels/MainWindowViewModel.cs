@@ -21,6 +21,8 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly TwitchAuthService    _auth        = new();
     private readonly TwitchEventSubService _eventSub   = new();
     private readonly ScreenEffectService  _screenEffects = new();
+    private readonly SoundPlayerService   _soundPlayer   = new();
+    private readonly ImageOverlayService  _imageOverlay  = new();
     private readonly RedemptionService    _redemption;
 
     // ── Connection ────────────────────────────────────────────────────────────
@@ -89,6 +91,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public static readonly IReadOnlyList<ScreenEffectType> AvailableEffectTypes =
         Enum.GetValues<ScreenEffectType>().ToList();
+
+    public static readonly IReadOnlyList<ImagePosition> AvailableImagePositions =
+        Enum.GetValues<ImagePosition>().ToList();
 
     public static readonly IReadOnlyList<string> AvailableKeys =
     [
@@ -163,7 +168,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public MainWindowViewModel(string? accessToken = null, string? refreshToken = null)
     {
-        _redemption = new RedemptionService(new CrossPlatformKeySimulator(), _screenEffects);
+        _redemption = new RedemptionService(new CrossPlatformKeySimulator(), _screenEffects, _soundPlayer, _imageOverlay);
 
         _screenEffects.OpenPreviewWindow();
         _screenEffects.PreviewClosed += () =>
@@ -665,6 +670,35 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     [RelayCommand]
+    private void PreviewSound(KeyStep? step)
+    {
+        if (step is null || string.IsNullOrWhiteSpace(step.SoundFilePath))
+            return;
+
+        _soundPlayer.Play(step.SoundFilePath, (int)step.SoundVolume);
+    }
+
+    [RelayCommand]
+    private void AddPlaySoundStep()
+    {
+        if (SelectedBinding is null)
+            return;
+
+        SelectedBinding.Steps.Add(new KeyStep { Type = StepType.PlaySound, SoundVolume = 100 });
+        SaveSettings();
+    }
+
+    [RelayCommand]
+    private void AddShowImageStep()
+    {
+        if (SelectedBinding is null)
+            return;
+
+        SelectedBinding.Steps.Add(new KeyStep { Type = StepType.ShowImage, ImagePosition = ImagePosition.Center, ImageDurationMs = 3000 });
+        SaveSettings();
+    }
+
+    [RelayCommand]
     private void DeleteStep(KeyStep? step)
     {
         if (step is null || SelectedBinding is null) 
@@ -754,6 +788,7 @@ public partial class MainWindowViewModel : ViewModelBase
         var b     = s.Bounds;
         var label = $"CrowdKeys Effect — {LocSingleton.Instance["Monitor_Screen"]} {index + 1}";
         _screenEffects.SetMonitor(index, b.X, b.Y, b.Width, b.Height, s.Scaling, label);
+        _imageOverlay.SetMonitor(b.X, b.Y, b.Width, b.Height, s.Scaling);
         SaveSettings();
     }
 

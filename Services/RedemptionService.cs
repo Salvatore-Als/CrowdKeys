@@ -19,18 +19,23 @@ public class RedemptionService
     [DllImport("user32.dll")] private static extern IntPtr GetForegroundWindow();
     [DllImport("user32.dll")] private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
 
-    private readonly IKeySimulator       _keySimulator;
-    private readonly ScreenEffectService _screenEffects;
+    private readonly IKeySimulator        _keySimulator;
+    private readonly ScreenEffectService  _screenEffects;
+    private readonly SoundPlayerService   _soundPlayer;
+    private readonly ImageOverlayService  _imageOverlay;
     private List<RedemptionBinding> _bindings = [];
 
     public string TargetProcessName { get; set; } = "";
 
     public event EventHandler<LogEntry>? LogAdded;
 
-    public RedemptionService(IKeySimulator keySimulator, ScreenEffectService screenEffects)
+    public RedemptionService(IKeySimulator keySimulator, ScreenEffectService screenEffects,
+        SoundPlayerService soundPlayer, ImageOverlayService imageOverlay)
     {
         _keySimulator  = keySimulator;
         _screenEffects = screenEffects;
+        _soundPlayer   = soundPlayer;
+        _imageOverlay  = imageOverlay;
     }
 
     public void UpdateBindings(IEnumerable<RedemptionBinding> bindings) =>
@@ -143,6 +148,14 @@ public class RedemptionService
                         break;
                     }
                     _screenEffects.Enqueue(step.EffectType, effectMs);
+                    break;
+
+                case Models.StepType.PlaySound:
+                    _soundPlayer.Play(step.SoundFilePath, (int)step.SoundVolume);
+                    break;
+
+                case Models.StepType.ShowImage:
+                    _imageOverlay.Enqueue(step.ImageFilePath, step.ImagePosition, (int)step.ImageDurationMs);
                     break;
 
                 case Models.StepType.KeyHold:
