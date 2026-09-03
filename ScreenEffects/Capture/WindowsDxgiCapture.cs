@@ -58,6 +58,20 @@ public class WindowsDxgiCapture : IScreenCapture
     [UnmanagedFunctionPointer(CallingConvention.StdCall)]
     delegate int DuplicateOutputFn(IntPtr t, IntPtr dev, out IntPtr pp); // IDXGIOutput1 slot 22
 
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    struct DxgiOutputDesc
+    {
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
+        public string DeviceName;
+        public int Left, Top, Right, Bottom; // RECT DesktopCoordinates
+        public int AttachedToDesktop;
+        public int Rotation;
+        public IntPtr Monitor;
+    }
+
+    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+    delegate int GetDescFn(IntPtr t, out DxgiOutputDesc desc); // IDXGIOutput slot 7
+
     [StructLayout(LayoutKind.Sequential)]
     struct FrameInfo
     {
@@ -109,7 +123,6 @@ public class WindowsDxgiCapture : IScreenCapture
 
     IntPtr _device, _context, _duplication, _stagingTex;
     int    _width, _height;
-    byte[] _rowBuf = Array.Empty<byte>();
     int    _monitorIndex = 0;
 
     AcquireFrameFn? _acquire;
@@ -156,6 +169,22 @@ public class WindowsDxgiCapture : IScreenCapture
         Release(ref adapter);
         if (output == IntPtr.Zero) return;
 
+        // Trust DXGI's own idea of this output's resolution over whatever the UI passed in —
+        // custom resolutions, GPU scaling, or a DXGI enumeration order that doesn't match
+        // Avalonia's screen list can make them diverge, which corrupts CopyResource below
+        // (mismatched dimensions fail silently and the destination keeps stale pixels,
+        // cropping the effect — most visible on non-16:9 displays).
+        if (Vtable<GetDescFn>(output, 7)(output, out var outDesc) >= 0)
+        {
+            var w = outDesc.Right  - outDesc.Left;
+            var h = outDesc.Bottom - outDesc.Top;
+            if (w > 0 && h > 0)
+            {
+                _width  = w;
+                _height = h;
+            }
+        }
+
         var output1 = QI(output, IID_IDXGIOutput1);
         Release(ref output);
         if (output1 == IntPtr.Zero) return;
@@ -169,7 +198,6 @@ public class WindowsDxgiCapture : IScreenCapture
             _width  = GetSystemMetrics(0);
             _height = GetSystemMetrics(1);
         }
-        _rowBuf = new byte[_width * 4];
 
         var desc = new Tex2DDesc
         {
@@ -202,7 +230,7 @@ public class WindowsDxgiCapture : IScreenCapture
         return bmp;
     }
 
-    public void CaptureInto(SKBitmap target)
+    public unsafe void CaptureInto(SKBitmap target)
     {
         if (!IsSupported || _acquire is null) return;
 
@@ -224,14 +252,14 @@ public class WindowsDxgiCapture : IScreenCapture
                     return;
                 try
                 {
-                    var dst      = target.GetPixels();
+                    // Direct native-to-native copy (no managed byte[] round trip) — RowPitch
+                    // is padded/aligned by D3D11 so it can exceed rowBytes, hence per-row.
+                    var src      = (byte*)mapped.pData;
+                    var dst      = (byte*)target.GetPixels();
                     int rowBytes = _width * 4;
 
                     for (int y = 0; y < _height; y++)
-                    {
-                        Marshal.Copy(IntPtr.Add(mapped.pData, y * mapped.RowPitch), _rowBuf, 0, rowBytes);
-                        Marshal.Copy(_rowBuf, 0, IntPtr.Add(dst, y * rowBytes), rowBytes);
-                    }
+                        Buffer.MemoryCopy(src + (long)y * mapped.RowPitch, dst + (long)y * rowBytes, rowBytes, rowBytes);
                 }
                 finally { _unmap!(_context, _stagingTex, 0); }
             }
