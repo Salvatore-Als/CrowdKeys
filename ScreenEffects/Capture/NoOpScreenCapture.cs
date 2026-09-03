@@ -8,5 +8,6 @@ public class NoOpScreenCapture : IScreenCapture
     public (int width, int height) ScreenSize => (0, 0);
     public SKBitmap? Capture() => null;
     public void CaptureInto(SKBitmap target) { }
+    public void SetMonitor(int monitorIndex, int x, int y, int width, int height) { }
     public void Dispose() { }
 }

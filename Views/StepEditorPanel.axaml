@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:CrowdKeys.ViewModels"
              xmlns:conv="using:CrowdKeys.ScreenEffects"
+             xmlns:models="using:CrowdKeys.Models"
              xmlns:loc="using:CrowdKeys.Localization"
              x:Class="CrowdKeys.Views.StepEditorPanel"
              x:DataType="vm:MainWindowViewModel"
@@ -71,6 +72,8 @@
                                         <TextBlock IsVisible="{Binding IsMouseMoveStep}"    Text="{Binding $parent[Window].DataContext.Loc[Step_TypeMove]}"   FontSize="11" FontWeight="SemiBold" Foreground="#c0c0cc"/>
                                         <TextBlock IsVisible="{Binding IsScreenEffectStep}" Text="{Binding $parent[Window].DataContext.Loc[Step_TypeEffect]}" FontSize="11" FontWeight="SemiBold" Foreground="#9147ff"/>
                                         <TextBlock IsVisible="{Binding IsKeyHoldStep}"      Text="{Binding $parent[Window].DataContext.Loc[Step_TypeHold]}"   FontSize="11" FontWeight="SemiBold" Foreground="#f0a500"/>
+                                        <TextBlock IsVisible="{Binding IsPlaySoundStep}"    Text="{Binding $parent[Window].DataContext.Loc[Step_TypeSound]}"  FontSize="11" FontWeight="SemiBold" Foreground="#00c8b4"/>
+                                        <TextBlock IsVisible="{Binding IsShowImageStep}"    Text="{Binding $parent[Window].DataContext.Loc[Step_TypeImage]}"  FontSize="11" FontWeight="SemiBold" Foreground="#ff6ec7"/>
                                     </StackPanel>
                                     <Button Grid.Column="1" Classes="danger"
                                             VerticalAlignment="Center"
@@ -229,6 +232,80 @@
                                     </StackPanel>
                                 </StackPanel>
 
+                                <!-- PLAY SOUND step body -->
+                                <StackPanel IsVisible="{Binding IsPlaySoundStep}" Spacing="8">
+                                    <TextBlock Text="{Binding $parent[Window].DataContext.Loc[Step_SoundFile]}" FontSize="11" Foreground="#6b6b7a" FontWeight="SemiBold"/>
+                                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="6">
+                                        <Button Grid.Column="0" Classes="ghost" Padding="10,6" FontSize="12"
+                                                IsEnabled="{Binding SoundFilePath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                                Command="{Binding $parent[Window].DataContext.PreviewSoundCommand}"
+                                                CommandParameter="{Binding}"
+                                                Content="▶"/>
+                                        <TextBox Grid.Column="1" Text="{Binding SoundFileName, Mode=OneWay}"
+                                                 IsReadOnly="True" FontSize="12"
+                                                 PlaceholderText="{Binding $parent[Window].DataContext.Loc[Step_NoFileSelected]}"/>
+                                        <Button Grid.Column="2" Classes="ghost" Padding="10,6" FontSize="12"
+                                                Click="BrowseSound_Click"
+                                                Content="{Binding $parent[Window].DataContext.Loc[Step_Browse]}"/>
+                                    </Grid>
+                                    <StackPanel Spacing="5">
+                                        <TextBlock Text="{Binding $parent[Window].DataContext.Loc[Step_SoundVolume]}" FontSize="11" Foreground="#6b6b7a" FontWeight="SemiBold"/>
+                                        <NumericUpDown Value="{Binding SoundVolume}" Minimum="0" Maximum="100"
+                                                       FormatString="0" Increment="5" ParsingNumberStyle="Integer"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- SHOW IMAGE step body -->
+                                <StackPanel IsVisible="{Binding IsShowImageStep}" Spacing="8">
+                                    <TextBlock Text="{Binding $parent[Window].DataContext.Loc[Step_ImageFile]}" FontSize="11" Foreground="#6b6b7a" FontWeight="SemiBold"/>
+                                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                                        <Border Grid.Column="0" Width="72" Height="72" CornerRadius="6"
+                                                Background="#14141a" BorderBrush="#2d2d35" BorderThickness="1"
+                                                ClipToBounds="True">
+                                            <Grid>
+                                                <Image Source="{Binding ImageFilePath, Converter={x:Static models:FilePathToBitmapConverter.Instance}}"
+                                                       Stretch="Uniform" Margin="4"/>
+                                                <TextBlock Text="🖼" FontSize="22" Foreground="#3d3d4a"
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                           IsVisible="{Binding ImageFilePath, Converter={x:Static StringConverters.IsNullOrEmpty}}"/>
+                                            </Grid>
+                                        </Border>
+                                        <Grid Grid.Column="1" RowDefinitions="Auto,Auto" VerticalAlignment="Center" RowSpacing="6">
+                                            <TextBox Grid.Row="0" Text="{Binding ImageFileName, Mode=OneWay}"
+                                                     IsReadOnly="True" FontSize="12"
+                                                     PlaceholderText="{Binding $parent[Window].DataContext.Loc[Step_NoFileSelected]}"/>
+                                            <Button Grid.Row="1" Classes="ghost" Padding="10,6" FontSize="12"
+                                                    HorizontalAlignment="Left"
+                                                    Click="BrowseImage_Click"
+                                                    Content="{Binding $parent[Window].DataContext.Loc[Step_Browse]}"/>
+                                        </Grid>
+                                    </Grid>
+                                    <StackPanel Spacing="5">
+                                        <TextBlock Text="{Binding $parent[Window].DataContext.Loc[Step_ImagePosition]}" FontSize="11" Foreground="#6b6b7a" FontWeight="SemiBold"/>
+                                        <ComboBox SelectedItem="{Binding ImagePosition}"
+                                                  ItemsSource="{x:Static vm:MainWindowViewModel.AvailableImagePositions}"
+                                                  HorizontalAlignment="Stretch">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock>
+                                                        <TextBlock.Text>
+                                                            <MultiBinding Converter="{x:Static models:ImagePositionConverter.Instance}">
+                                                                <Binding/>
+                                                                <Binding Path="CurrentLang" Source="{x:Static loc:Loc.Instance}"/>
+                                                            </MultiBinding>
+                                                        </TextBlock.Text>
+                                                    </TextBlock>
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
+                                    </StackPanel>
+                                    <StackPanel Spacing="5">
+                                        <TextBlock Text="{Binding $parent[Window].DataContext.Loc[Step_ImageDelay]}" FontSize="11" Foreground="#6b6b7a" FontWeight="SemiBold"/>
+                                        <NumericUpDown Value="{Binding ImageDurationMs}" Minimum="100" Maximum="30000"
+                                                       FormatString="0" Increment="500" ParsingNumberStyle="Integer"/>
+                                    </StackPanel>
+                                </StackPanel>
+
                                 </StackPanel>
                             </Grid>
                         </Border>
@@ -273,10 +350,22 @@
                     <TextBlock Text="{Binding Loc[Step_AddMove]}" FontSize="13" VerticalAlignment="Center"/>
                 </StackPanel>
             </Button>
-<Button Classes="ghost" Command="{Binding AddScreenEffectStepCommand}" Padding="14,8" FontSize="13" Margin="0,4,0,0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+            <Button Classes="ghost" Command="{Binding AddScreenEffectStepCommand}" Padding="14,8" FontSize="13" Margin="0,4,8,0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
                 <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <TextBlock Text="🖥" FontSize="13" VerticalAlignment="Center"/>
                     <TextBlock Text="{Binding Loc[Step_AddEffect]}" FontSize="13" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Button>
+            <Button Classes="ghost" Command="{Binding AddPlaySoundStepCommand}" Padding="14,8" FontSize="13" Margin="0,4,8,0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+                <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock Text="🔊" FontSize="13" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding Loc[Step_AddSound]}" FontSize="13" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Button>
+            <Button Classes="ghost" Command="{Binding AddShowImageStepCommand}" Padding="14,8" FontSize="13" Margin="0,4,0,0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+                <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock Text="🖼" FontSize="13" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding Loc[Step_AddImage]}" FontSize="13" VerticalAlignment="Center"/>
                 </StackPanel>
             </Button>
         </WrapPanel>

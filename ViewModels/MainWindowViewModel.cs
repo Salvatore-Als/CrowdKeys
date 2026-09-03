@@ -21,6 +21,8 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly TwitchAuthService    _auth        = new();
     private readonly TwitchEventSubService _eventSub   = new();
     private readonly ScreenEffectService  _screenEffects = new();
+    private readonly SoundPlayerService   _soundPlayer   = new();
+    private readonly ImageOverlayService  _imageOverlay  = new();
     private readonly RedemptionService    _redemption;
 
     // ── Connection ────────────────────────────────────────────────────────────
@@ -89,6 +91,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public static readonly IReadOnlyList<ScreenEffectType> AvailableEffectTypes =
         Enum.GetValues<ScreenEffectType>().ToList();
+
+    public static readonly IReadOnlyList<ImagePosition> AvailableImagePositions =
+        Enum.GetValues<ImagePosition>().ToList();
 
     public static readonly IReadOnlyList<string> AvailableKeys =
     [
@@ -163,10 +168,19 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public MainWindowViewModel(string? accessToken = null, string? refreshToken = null)
     {
-        _redemption = new RedemptionService(new CrossPlatformKeySimulator(), _screenEffects);
+        _redemption = new RedemptionService(new CrossPlatformKeySimulator(), _screenEffects, _soundPlayer, _imageOverlay);
 
         _screenEffects.OpenPreviewWindow();
+        _screenEffects.PreviewClosed += () =>
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                AddToLog(LocSingleton.Instance["Log_PreviewClosed"], "#f0a500"));
+
+        _screenEffects.EffectBypassed += () =>
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                AddToLog(LocSingleton.Instance["Log_EffectBypassed"], "#f0a500"));
         RefreshProcesses();
+
+        LocSingleton.Instance.PropertyChanged += (_, _) => RefreshMonitorLabels();
 
         _redemption.LogAdded += (_, entry) =>
             Avalonia.Threading.Dispatcher.UIThread.Post(() => Log.Insert(0, entry));
@@ -656,6 +670,35 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     [RelayCommand]
+    private void PreviewSound(KeyStep? step)
+    {
+        if (step is null || string.IsNullOrWhiteSpace(step.SoundFilePath))
+            return;
+
+        _soundPlayer.Play(step.SoundFilePath, (int)step.SoundVolume);
+    }
+
+    [RelayCommand]
+    private void AddPlaySoundStep()
+    {
+        if (SelectedBinding is null)
+            return;
+
+        SelectedBinding.Steps.Add(new KeyStep { Type = StepType.PlaySound, SoundVolume = 100 });
+        SaveSettings();
+    }
+
+    [RelayCommand]
+    private void AddShowImageStep()
+    {
+        if (SelectedBinding is null)
+            return;
+
+        SelectedBinding.Steps.Add(new KeyStep { Type = StepType.ShowImage, ImagePosition = ImagePosition.Center, ImageDurationMs = 3000 });
+        SaveSettings();
+    }
+
+    [RelayCommand]
     private void DeleteStep(KeyStep? step)
     {
         if (step is null || SelectedBinding is null) 
@@ -690,6 +733,64 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private void TestSelectedEffect() =>
         _screenEffects.Enqueue(SelectedTestEffect, TestEffectDurationMs);
+
+    [RelayCommand]
+    private void StopAllEffects() => _screenEffects.StopAll();
+
+    // ── Monitor selection ─────────────────────────────────────────────────────
+
+    [ObservableProperty] private int _selectedMonitorIndex = 0;
+
+    // Pre-populated so ComboBox never sees empty list — prevents TwoWay binding from writing -1 back.
+    public ObservableCollection<string> AvailableMonitors { get; } = ["Screen 1"];
+
+    private IReadOnlyList<Avalonia.Platform.Screen>? _screens;
+
+    public void RefreshMonitors(IReadOnlyList<Avalonia.Platform.Screen>? screens)
+    {
+        if (screens is null || screens.Count == 0)
+            return;
+        _screens = screens;
+
+        RefreshMonitorLabels();
+
+        var idx = Math.Clamp(SelectedMonitorIndex, 0, screens.Count - 1);
+        SelectedMonitorIndex = idx;
+        ApplyMonitorSelection(idx);
+    }
+
+    private void RefreshMonitorLabels()
+    {
+        if (_screens is null) 
+            return;
+        
+        var word = LocSingleton.Instance["Monitor_Screen"];
+        for (int i = 0; i < _screens.Count; i++)
+        {
+            var label = $"{word} {i + 1}";
+            if (i < AvailableMonitors.Count) 
+                AvailableMonitors[i] = label;
+            else                             
+                AvailableMonitors.Add(label);
+        }
+        while (AvailableMonitors.Count > _screens.Count)
+            AvailableMonitors.RemoveAt(AvailableMonitors.Count - 1);
+    }
+
+    partial void OnSelectedMonitorIndexChanged(int value) => ApplyMonitorSelection(value);
+
+    private void ApplyMonitorSelection(int index)
+    {
+        if (_screens is null || index < 0 || index >= _screens.Count) 
+            return;
+        
+        var s     = _screens[index];
+        var b     = s.Bounds;
+        var label = $"CrowdKeys Effect — {LocSingleton.Instance["Monitor_Screen"]} {index + 1}";
+        _screenEffects.SetMonitor(index, b.X, b.Y, b.Width, b.Height, s.Scaling, label);
+        _imageOverlay.SetMonitor(b.X, b.Y, b.Width, b.Height, s.Scaling);
+        SaveSettings();
+    }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
@@ -728,9 +829,10 @@ public partial class MainWindowViewModel : ViewModelBase
             LoginName     = s.LoginName;
             Bindings      = new ObservableCollection<RedemptionBinding>(s.Bindings);
             SyncBindings();
-            HasCredentials = !string.IsNullOrEmpty(_accessToken);
+            HasCredentials        = !string.IsNullOrEmpty(_accessToken);
             SelectedTargetProcess = string.IsNullOrEmpty(s.TargetProcessName) ? null : s.TargetProcessName;
             _redemption.TargetProcessName = s.TargetProcessName;
+            SelectedMonitorIndex = s.SelectedMonitorIndex; // ApplyMonitorSelection no-ops when _screens is null
         }
         catch { }
     }
@@ -823,8 +925,9 @@ public partial class MainWindowViewModel : ViewModelBase
                     AccessToken       = _accessToken,
                     RefreshToken      = _refreshToken,
                     LoginName         = LoginName,
-                    Bindings          = [.. Bindings],
-                    TargetProcessName = SelectedTargetProcess ?? "",
+                    Bindings              = [.. Bindings],
+                    TargetProcessName     = SelectedTargetProcess ?? "",
+                    SelectedMonitorIndex  = SelectedMonitorIndex,
                 },
                 new JsonSerializerOptions { WriteIndented = true }));
         }
